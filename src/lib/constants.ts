@@ -18,12 +18,12 @@ export const KCAL_PER_GRAM = {
 } as const;
 
 // [protein%, carbs%, fat%]
-export const MACRO_SPLITS: Record<string, [number, number, number]> = {
+export const MACRO_SPLITS = {
   lose: [0.40, 0.35, 0.25],
   build: [0.30, 0.45, 0.25],
   maintain: [0.30, 0.40, 0.30],
   keto: [0.25, 0.08, 0.67],
-};
+} as const;
 
 export const GOAL_ADJUSTMENT_KCAL = {
   lose: -450,

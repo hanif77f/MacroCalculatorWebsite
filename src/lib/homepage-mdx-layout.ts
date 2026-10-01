@@ -273,7 +273,7 @@ function arrangeFaq(nodes: AstNode[]): AstNode[] {
   const body = nodes.slice(1);
   const items: AstNode[] = [];
   for (let i = 0; i < body.length; i++) {
-    const leadingStrong = body[i].type === "paragraph" && body[i].children?.[0]?.type === "strong" && (body[i].children.length ?? 0) > 1
+    const leadingStrong = body[i].type === "paragraph" && body[i].children?.[0]?.type === "strong" && (body[i].children?.length ?? 0) > 1
       ? body[i].children?.[0]
       : null;
     const question = labelOf(body[i]) ?? (leadingStrong ? textOf(leadingStrong) : null);
