@@ -177,7 +177,7 @@ export default function Nav() {
     <header className="site-nav" data-scrolled={isScrolled}>
       <div className="nav-inner">
         <Link href="/" className="brand-mark">
-          <Image alt="" aria-hidden="true" className="brand-logo" height={36} src="/images/logo/logo.png" width={36} />
+          <Image alt="" aria-hidden="true" className="brand-logo" height={36} src="/images/logo/logo.webp" width={36} />
           <b><span className="brand-macro">Macro</span>Calculators</b>
         </Link>
         <div className="nav-tools">

@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     images: [OG_IMAGE],
   },
   icons: {
-    icon: "/images/logo/favicon.png",
+    icon: "/images/logo/favicon.webp",
   },
   robots: {
     index: true,

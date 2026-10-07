@@ -35,7 +35,7 @@ export default function SiteFooter() {
         <div className="footer-main">
           <section className="footer-brand">
             <Link className="footer-brand-link" href="/">
-              <Image alt="" aria-hidden="true" className="footer-brand-logo" height={40} src="/images/logo/logo.png" width={40} />
+              <Image alt="" aria-hidden="true" className="footer-brand-logo" height={40} src="/images/logo/logo.webp" width={40} />
               <span><span className="footer-brand-accent">Macro</span>Calculators</span>
             </Link>
             <p>Clear tools for more confident nutrition decisions.</p>

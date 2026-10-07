@@ -140,22 +140,6 @@ export const calculators: CalculatorEntry[] = [
     cluster: "neutral",
     calculatorType: "maintenance",
   },
-  {
-    slug: "keto-macro-calculator",
-    title: "Keto Macro Calculator",
-    shortTitle: "Keto Macro Calculator",
-    description: "Lower-carb, keto-friendly macro targets.",
-    cluster: "macro",
-    calculatorType: "keto",
-  },
-  {
-    slug: "one-rep-max-calculator",
-    title: "One Rep Max Calculator",
-    shortTitle: "One Rep Max Calculator",
-    description: "Estimate your 1RM for bench press, squat, deadlift and more.",
-    cluster: "neutral",
-    calculatorType: "onerepmax",
-  },
 ];
 
 export function getCalculator(slug: string) {

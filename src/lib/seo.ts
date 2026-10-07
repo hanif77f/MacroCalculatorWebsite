@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 const SITE_URL = "https://macrocalculators.com";
 const SITE_NAME = "MacroCalculators";
-export const OG_IMAGE = "/images/og/macrocalculators-og.png";
+export const OG_IMAGE = "/images/og/macrocalculators-og.webp";
 
 export function generateSeo(opts: {
   title: string;
