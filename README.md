@@ -12,6 +12,18 @@ npm run dev
 
 Then open http://localhost:3000
 
+## Contact form email
+
+The contact form sends messages through Resend. Configure these server-side environment variables before using it:
+
+```
+RESEND_API_KEY=re_your_api_key
+CONTACT_FROM_EMAIL=MacroCalculators <contact@your-verified-domain.com>
+CONTACT_TO_EMAIL=macrocalculators@gmail.com
+```
+
+Verify the sender domain with Resend before setting `CONTACT_FROM_EMAIL`. The recipient defaults to `macrocalculators@gmail.com` if `CONTACT_TO_EMAIL` is omitted. Do not expose the Resend API key in a `NEXT_PUBLIC_` variable.
+
 ## Adding a new calculator (the only 3 steps, per the master prompt)
 
 1. Add an entry to `src/data/calculators.ts`

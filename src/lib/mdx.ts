@@ -11,6 +11,7 @@ export interface Frontmatter {
   cluster?: string;
   keywords?: string[];
   related?: string[];
+  published?: string;
   updated?: string;
 }
 

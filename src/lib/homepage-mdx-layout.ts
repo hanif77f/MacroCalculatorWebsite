@@ -17,6 +17,39 @@ const anchorIds: Record<string, string> = {
   "Keto Macro Calculator": "keto",
 };
 
+function slugifyHeading(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function idOfHeading(title: string, explicitId?: string): string {
+  return explicitId ?? anchorIds[title] ?? slugifyHeading(title);
+}
+
+export function getHomepageSectionLinks(content: string) {
+  const usedIds = new Set<string>();
+  return content
+    .split(/\r?\n/)
+    .flatMap((line) => {
+      const match = /^(#{1,2})\s+(.+?)\s*$/.exec(line);
+      if (!match) return [];
+      const title = match[2].replace(/\s+\{#([\w-]+)\}\s*$/, "").trim();
+      if (title === "Related Calculators") return [];
+      const explicitId = /\s+\{#([\w-]+)\}\s*$/.exec(match[2])?.[1];
+      const baseId = idOfHeading(title, explicitId);
+      let id = baseId;
+      let suffix = 2;
+      while (usedIds.has(id)) {
+        id = `${baseId}-${suffix}`;
+        suffix++;
+      }
+      usedIds.add(id);
+      return [{ id, title }];
+    });
+}
+
 function textOf(node: AstNode): string {
   return node.value ?? (node.children ?? []).map(textOf).join("");
 }
@@ -170,29 +203,35 @@ function splitResultTable(table: AstNode): AstNode[] {
   return [first, second].filter((group) => tableRows(group).length > 1);
 }
 
-function arrangeGoalSection(nodes: AstNode[], kind: "muscle" | "maintenance" | "keto"): AstNode[] {
+function arrangeGoalSection(nodes: AstNode[], kind: "loss" | "muscle" | "maintenance" | "keto"): AstNode[] {
   const heading = nodes[0];
   const body = nodes.slice(1);
   const splitIndex = body.findIndex((node) => /Macro Split$/i.test(labelOf(node) ?? ""));
   const calculationIndex = body.findIndex((node) => /Calculation$/i.test(labelOf(node) ?? ""));
-  if (splitIndex < 0 || calculationIndex < 0 || body[splitIndex + 1]?.type !== "table" || body[calculationIndex + 1]?.type !== "table") return nodes;
+  if (kind === "loss") accentHeading(heading, "Macro Calculator for ", "Weight Loss", "macro-protein");
+  if (splitIndex < 0 || calculationIndex < 0 || body[splitIndex + 1]?.type !== "table" || body[calculationIndex + 1]?.type !== "table") {
+    return kind === "loss" ? pairLabelTables(nodes, (label) => /Macro Split$/i.test(label)) : nodes;
+  }
 
   if (kind === "muscle") accentHeading(heading, "Macro Calculator for ", "Muscle Gain", "macro-carbs");
   if (kind === "maintenance") accentHeading(heading, "Macro Calculator for ", "Maintenance", "macro-fat");
   if (kind === "keto") accentHeading(heading, "", "Keto", "macro-fat");
 
   let leftContent = body.slice(0, splitIndex);
-  if (kind === "muscle") {
-    const firstRole = leftContent.findIndex((node) => (labelOf(node) ?? "").startsWith("The Role of "));
-    if (firstRole >= 0) {
+  if (kind === "muscle" || kind === "loss") {
+    const isTopic = (label: string) => kind === "muscle"
+      ? label.startsWith("The Role of ")
+      : label === "Why Protein Matters During Fat Loss";
+    const firstTopic = leftContent.findIndex((node) => isTopic(labelOf(node) ?? ""));
+    if (firstTopic >= 0) {
       const topics: AstNode[] = [];
-      for (let i = firstRole; i < leftContent.length; i++) {
-        if ((labelOf(leftContent[i]) ?? "").startsWith("The Role of ") && leftContent[i + 1]) {
+      for (let i = firstTopic; i < leftContent.length; i++) {
+        if (isTopic(labelOf(leftContent[i]) ?? "") && leftContent[i + 1]) {
           topics.push(wrapper("mdx-goal-topic", [leftContent[i], leftContent[i + 1]]));
           i++;
         }
       }
-      leftContent = [...leftContent.slice(0, firstRole), wrapper("mdx-goal-topics", topics)];
+      leftContent = [...leftContent.slice(0, firstTopic), wrapper("mdx-goal-topics", topics)];
     }
   }
 
@@ -540,9 +579,13 @@ function arrangeNutrientSection(nodes: AstNode[], kind: "overview" | "protein" |
   if (kind === "carbs") {
     const foodLabel = body.findIndex((node, index) => index > firstLabel && /Common High-Carb Foods/i.test(labelOf(node) ?? ""));
     if (firstLabel < 0 || foodLabel < 0) return nodes;
+    const explanation = body.slice(0, foodLabel).map((node) =>
+      /Total Carbohydrates.*Fiber.*Net Carbs/i.test(textOf(node))
+        ? wrapper("mdx-carb-formula", [node])
+        : node,
+    );
     return [heading, wrapper("mdx-editorial-columns mdx-carbs-columns", [
-      wrapper("mdx-editorial-copy", body.slice(0, firstLabel)),
-      wrapper("mdx-editorial-data mdx-editorial-note", body.slice(firstLabel, foodLabel)),
+      wrapper("mdx-editorial-copy", explanation),
       wrapper("mdx-editorial-data", body.slice(foodLabel)),
     ])];
   }
@@ -581,20 +624,6 @@ function arrangeIndividualDifferences(nodes: AstNode[]): AstNode[] {
     }
   }
   return [heading, ...intro, wrapper("mdx-individual-grid", [...topics, ...(note.length ? [wrapper("mdx-individual-note", note)] : [])])];
-}
-
-function arrangeWeightLoss(nodes: AstNode[]): AstNode[] {
-  const heading = nodes[0];
-  accentHeading(heading, "Macro Calculator for ", "Weight Loss", "macro-protein");
-  const proteinIndex = nodes.findIndex((node) => /Why Protein Matters During Fat Loss/i.test(labelOf(node) ?? ""));
-  const calculationIndex = nodes.findIndex((node) => /Example Weight Loss Calculation/i.test(labelOf(node) ?? ""));
-  if (proteinIndex < 0 || calculationIndex < 0) return pairLabelTables(nodes, (label) => /Macro Split$/i.test(label));
-
-  return [heading, wrapper("mdx-goal-columns", [
-    wrapper("mdx-goal-copy", nodes.slice(1, proteinIndex)),
-    wrapper("mdx-goal-guidance", nodes.slice(proteinIndex, calculationIndex)),
-    wrapper("mdx-goal-example", nodes.slice(calculationIndex)),
-  ])];
 }
 
 function arrangeQuickAnswer(nodes: AstNode[]): AstNode[] {
@@ -647,7 +676,7 @@ function arrangeSection(nodes: AstNode[], title: string): AstNode[] {
   if (title === "Carbohydrates Explained") return arrangeNutrientSection(nodes, "carbs");
   if (title === "Fat Explained") return arrangeNutrientSection(nodes, "fat");
   if (title === "Macro Needs Can Vary Between Individuals") return arrangeIndividualDifferences(nodes);
-  if (title === "Macro Calculator for Weight Loss") return arrangeWeightLoss(nodes);
+  if (title === "Macro Calculator for Weight Loss") return arrangeGoalSection(nodes, "loss");
   if (title === "Common Macro Tracking Mistakes") return arrangeMistakes(nodes);
   if (title === "Who Should Use This Calculator?") return arrangeAudienceSection(nodes, "who");
   if (title === "Learn More About Macros") return arrangeAudienceSection(nodes, "learn");
@@ -685,10 +714,14 @@ export function remarkHomepageLayout() {
         if (childHeading) node.depth = 2;
         current = [node];
         const headingText = textOf(node).replace(/\s+\{#[\w-]+\}\s*$/, "").trim();
-        node.data = { ...node.data, hProperties: { ...((node.data?.hProperties as Record<string, unknown> | undefined) ?? {}), ...(anchorIds[headingText] ? { id: anchorIds[headingText] } : {}) } };
+        node.data = { ...node.data, hProperties: { ...((node.data?.hProperties as Record<string, unknown> | undefined) ?? {}), id: idOfHeading(headingText) } };
       } else if (current) {
         current.push(node);
       } else {
+        if (node.type === "heading" && node.depth === 1) {
+          const headingText = textOf(node).trim();
+          node.data = { ...node.data, hProperties: { ...((node.data?.hProperties as Record<string, unknown> | undefined) ?? {}), id: idOfHeading(headingText) } };
+        }
         preamble.push(node);
       }
     }

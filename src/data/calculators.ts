@@ -3,6 +3,12 @@
 // the sitemap. No other file needs editing for those to update.
 
 export type Cluster = "macro" | "neutral";
+export const calculatorNavigationGroups = [
+  { id: "nutrition", label: "Nutrition & Macros" },
+  { id: "energy", label: "Energy & Calories" },
+  { id: "body-composition", label: "Body Composition" },
+] as const;
+export type CalculatorNavigationGroup = (typeof calculatorNavigationGroups)[number]["id"];
 
 export interface CalculatorEntry {
   slug: string;
@@ -11,6 +17,8 @@ export interface CalculatorEntry {
   description: string;
   cluster: Cluster; // macro = protein/carb/fat color; neutral = gray
   calculatorType: string;
+  navigationGroup?: CalculatorNavigationGroup;
+  navigationOrder?: number;
   isHomepage?: boolean; // true = this tool's canonical URL is "/", not /calculators/slug
 }
 
@@ -22,15 +30,29 @@ export const calculators: CalculatorEntry[] = [
     description: "Get your daily calorie and macro targets based on your goal, activity level, and body stats.",
     cluster: "macro",
     calculatorType: "macro",
+    navigationGroup: "nutrition",
+    navigationOrder: 1,
     isHomepage: true, // homepage IS the tool page — no separate /calculators/macro-calculator route
   },
   {
     slug: "tdee-calculator",
-    title: "TDEE Calculator (Calorie Calculator)",
-    shortTitle: "Calorie Calculator (TDEE)",
+    title: "TDEE Calculator",
+    shortTitle: "TDEE Calculator",
     description: "Estimate your maintenance calories using trusted formulas.",
     cluster: "neutral",
     calculatorType: "tdee",
+    navigationGroup: "energy",
+    navigationOrder: 2,
+  },
+  {
+    slug: "calorie-calculator",
+    title: "Calorie Calculator",
+    shortTitle: "Calorie Calculator",
+    description: "Estimate your daily calorie needs for maintenance, weight loss, or weight gain.",
+    cluster: "neutral",
+    calculatorType: "calories",
+    navigationGroup: "energy",
+    navigationOrder: 3,
   },
   {
     slug: "bmr-calculator",
@@ -39,46 +61,58 @@ export const calculators: CalculatorEntry[] = [
     description: "Estimate your Basal Metabolic Rate — calories burned at rest.",
     cluster: "neutral",
     calculatorType: "bmr",
+    navigationGroup: "energy",
+    navigationOrder: 1,
   },
   {
     slug: "protein-calculator",
     title: "Protein Calculator",
     shortTitle: "Protein Calculator",
-    description: "Find your optimal daily protein intake for your goal and body weight.",
+    description: "Estimate a practical daily protein target based on your body weight, activity level, and goal.",
     cluster: "macro",
     calculatorType: "protein",
+    navigationGroup: "nutrition",
+    navigationOrder: 2,
   },
   {
     slug: "carb-calculator",
     title: "Carb Calculator",
     shortTitle: "Carbs Calculator",
-    description: "Calculate your ideal carbohydrate intake for energy and performance.",
+    description: "Estimate a daily carbohydrate target based on your calorie needs, activity, and goal.",
     cluster: "macro",
     calculatorType: "carbs",
+    navigationGroup: "nutrition",
+    navigationOrder: 3,
   },
   {
-    slug: "fat-calculator",
-    title: "Fat Calculator",
-    shortTitle: "Fat Calculator",
-    description: "Get your recommended daily fat intake for hormone and overall health.",
+    slug: "fat-intake-calculator",
+    title: "Fat Intake Calculator",
+    shortTitle: "Fat Intake Calculator",
+    description: "Calculate your daily dietary fat target in grams from your calorie intake and chosen percentage of calories from fat.",
     cluster: "macro",
     calculatorType: "fat",
+    navigationGroup: "nutrition",
+    navigationOrder: 4,
   },
   {
     slug: "body-fat-calculator",
     title: "Body Fat Calculator",
     shortTitle: "Body Fat Calculator",
-    description: "Estimate your body fat percentage using multiple methods.",
+    description: "Estimate body fat percentage from your height, neck, waist, hip, weight, and sex using the U.S. Navy circumference method.",
     cluster: "neutral",
     calculatorType: "bodyfat",
+    navigationGroup: "body-composition",
+    navigationOrder: 1,
   },
   {
     slug: "lean-body-mass-calculator",
     title: "Lean Body Mass Calculator",
     shortTitle: "Lean Body Mass",
-    description: "Estimate your fat-free body mass.",
+    description: "Compare Boer, James, and Hume equations to estimate lean body mass from your sex, age, height, and weight.",
     cluster: "neutral",
     calculatorType: "leanmass",
+    navigationGroup: "body-composition",
+    navigationOrder: 2,
   },
   {
     slug: "ffmi-calculator",
@@ -92,9 +126,11 @@ export const calculators: CalculatorEntry[] = [
     slug: "calorie-deficit-calculator",
     title: "Calorie Deficit Calculator",
     shortTitle: "Calorie Deficit",
-    description: "Find the right deficit for sustainable fat loss.",
+    description: "Estimate your maintenance calories, select a daily deficit, and find a practical calorie target for weight loss.",
     cluster: "neutral",
     calculatorType: "deficit",
+    navigationGroup: "energy",
+    navigationOrder: 4,
   },
   {
     slug: "maintenance-calorie-calculator",

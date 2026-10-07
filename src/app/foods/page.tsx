@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { listContent } from "@/lib/mdx";
+import { generateSeo } from "@/lib/seo";
+
+export const metadata = generateSeo({
+  title: "Food Nutrition",
+  description: "Explore food nutrition information and macro details from MacroCalculators.",
+  path: "/foods",
+});
 
 export default function FoodsHub() {
   const foods = listContent("foods");

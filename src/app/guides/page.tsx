@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { listContent } from "@/lib/mdx";
+import { generateSeo } from "@/lib/seo";
+
+export const metadata = generateSeo({
+  title: "Nutrition Guides",
+  description: "Browse practical nutrition and fitness guides from MacroCalculators.",
+  path: "/guides",
+});
 
 export default function GuidesHub() {
   const guides = listContent("guides");

@@ -1,11 +1,13 @@
 import { MetadataRoute } from "next";
 import { calculators } from "@/data/calculators";
-import { getAllSlugs } from "@/lib/mdx";
+import { getAllSlugs, getContent } from "@/lib/mdx";
 
 const BASE = "https://macrocalculators.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const calcUrls = calculators.map((c) => ({
+  const calcUrls = calculators.filter((calculator) =>
+    !calculator.isHomepage && getContent("calculators", calculator.slug),
+  ).map((c) => ({
     url: `${BASE}/calculators/${c.slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.9,
@@ -29,6 +31,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: BASE, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE}/calculators`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/about`, changeFrequency: "yearly", priority: 0.5 },
+    { url: `${BASE}/editorial-team`, changeFrequency: "yearly", priority: 0.5 },
+    { url: `${BASE}/contact`, changeFrequency: "yearly", priority: 0.5 },
+    { url: `${BASE}/privacy`, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${BASE}/terms-of-use`, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${BASE}/disclaimer`, changeFrequency: "yearly", priority: 0.4 },
     ...calcUrls,
     ...guideUrls,
     ...foodUrls,

@@ -21,6 +21,8 @@ export interface MacroResult {
   formulaUsed: string;
 }
 
+export type BmrInput = Pick<MacroInput, "weightKg" | "heightCm" | "age" | "sex" | "formula" | "bodyFatPct">;
+
 function bmrMifflin(w: number, h: number, age: number, sex: "male" | "female") {
   return sex === "male" ? 10 * w + 6.25 * h - 5 * age + 5 : 10 * w + 6.25 * h - 5 * age - 161;
 }
@@ -32,22 +34,27 @@ function bmrHarris(w: number, h: number, age: number, sex: "male" | "female") {
 function bmrKatch(lbm: number) { return 370 + 21.6 * lbm; }
 function bmrCunningham(lbm: number) { return 500 + 22 * lbm; }
 
-export function calculateMacros(input: MacroInput): MacroResult {
-  const { weightKg, heightCm, age, sex, activity, goal, formula, bodyFatPct } = input;
-  let bmr: number;
-  let formulaUsed = "Mifflin-St Jeor";
+export function calculateBmr(input: BmrInput) {
+  const { weightKg, heightCm, age, sex, formula, bodyFatPct } = input;
 
   if ((formula === "katch" || formula === "cunningham") && bodyFatPct) {
-    const lbm = weightKg * (1 - bodyFatPct / 100);
-    bmr = formula === "katch" ? bmrKatch(lbm) : bmrCunningham(lbm);
-    formulaUsed = formula === "katch" ? "Katch-McArdle" : "Cunningham";
-  } else if (formula === "harris") {
-    bmr = bmrHarris(weightKg, heightCm, age, sex);
-    formulaUsed = "Harris-Benedict";
-  } else {
-    bmr = bmrMifflin(weightKg, heightCm, age, sex);
+    const leanBodyMass = weightKg * (1 - bodyFatPct / 100);
+    return {
+      bmr: Math.round(formula === "katch" ? bmrKatch(leanBodyMass) : bmrCunningham(leanBodyMass)),
+      formulaUsed: formula === "katch" ? "Katch-McArdle" : "Cunningham",
+    };
   }
 
+  if (formula === "harris") {
+    return { bmr: Math.round(bmrHarris(weightKg, heightCm, age, sex)), formulaUsed: "Harris-Benedict" };
+  }
+
+  return { bmr: Math.round(bmrMifflin(weightKg, heightCm, age, sex)), formulaUsed: "Mifflin-St Jeor" };
+}
+
+export function calculateMacros(input: MacroInput): MacroResult {
+  const { activity, goal } = input;
+  const { bmr, formulaUsed } = calculateBmr(input);
   const tdee = bmr * ACTIVITY_MULTIPLIERS[activity];
   const targetKcal = Math.round(tdee + GOAL_ADJUSTMENT_KCAL[goal]);
   const [pPct, cPct, fPct] = MACRO_SPLITS[goal];

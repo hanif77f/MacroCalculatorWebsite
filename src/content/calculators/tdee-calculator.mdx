@@ -1,24 +1,440 @@
 ---
 title: "TDEE Calculator"
-description: "Estimate your Total Daily Energy Expenditure (maintenance calories)."
+description: "Use this TDEE calculator to estimate daily calorie needs from your age, sex, weight, height, and activity level. See BMR and maintenance calories."
 slug: "tdee-calculator"
 cluster: "neutral"
 keywords: ["tdee calculator", "calorie calculator", "maintenance calorie calculator"]
-related: ["macro-calculator", "protein-calculator"]
-updated: "2026-09-29"
+related: ["bmr-calculator", "calorie-calculator", "calorie-deficit-calculator", "macro-calculator", "protein-calculator"]
+updated: "2026-10-02"
 ---
 
-## What is TDEE?
+# Quick Answer: What Is TDEE?
 
-Total Daily Energy Expenditure is the number of calories you burn in a
-day including activity — your maintenance calorie level.
+TDEE stands for **Total Daily Energy Expenditure**. It is an estimate of the total amount of energy your body uses over the course of a typical day.
 
-## How it's calculated
+A TDEE calculator generally starts by estimating your **Basal Metabolic Rate (BMR)** and then adjusts that estimate according to your activity level. The result gives you an estimate of the [calories you may need to maintain your current body weight](/calculators/calorie-calculator).
 
-BMR (via your chosen formula) × activity multiplier = TDEE. Eat below
-TDEE to lose weight, above to gain, at TDEE to maintain.
+A simple representation is:
 
-## FAQ
+**TDEE = BMR × Activity Multiplier**
 
-**How is TDEE different from BMR?**
-BMR is calories at complete rest. TDEE adds activity on top of that.
+---
+
+# What Is Included in TDEE?
+
+Daily energy expenditure is not just the calories you burn during a workout.
+
+A TDEE estimate can be thought of as including several components of daily energy use, including:
+
+**Basal metabolic rate:** the energy required to support basic functions at rest.
+
+**Physical activity:** exercise as well as movement throughout the day.
+
+**Non-exercise movement:** activities such as walking, working, household tasks, and other everyday movement.
+
+**Thermic effect of food:** the energy used to digest and process food.
+
+In practical calculator formulas, these components are often simplified into a BMR estimate multiplied by an activity factor. Not every calculator models every component separately, which is one reason TDEE should be interpreted as an estimate. ([Calculator.net][1])
+
+---
+
+# How Is TDEE Calculated?
+
+Most TDEE calculators follow the same basic sequence.
+
+## Step 1: Calculate BMR
+
+First, the calculator estimates your basal metabolic rate.
+
+The equation uses personal information such as age, sex, height, and weight, depending on the formula selected.
+
+The Mifflin-St Jeor equation is one of the commonly used equations for estimating resting energy expenditure. The original study developed and tested the equation using 498 healthy adults and reported separate equations for men and women. ([PubMed][2])
+
+## Step 2: Choose Your Activity Level
+
+Your BMR is then adjusted according to your usual level of activity.
+
+This is represented by an activity multiplier.
+
+## Step 3: Calculate TDEE
+
+The calculator combines your estimated BMR and activity multiplier:
+
+**TDEE = BMR × Activity Multiplier**
+
+The resulting number is your estimated total daily energy expenditure.
+
+---
+
+# TDEE Formula
+
+The basic formula used by many TDEE calculators is:
+
+**TDEE = BMR × Activity Multiplier**
+
+For example, if an estimated BMR is **1,700 calories** and the selected activity multiplier is **1.55**:
+
+**1,700 × 1.55 = 2,635 calories/day**
+
+That result would represent an estimated TDEE, not a guaranteed daily calorie burn.
+
+---
+
+# TDEE Activity Levels
+
+Your activity level can have a substantial effect on the final estimate, so choosing a level that reflects your normal routine matters.
+
+| Activity Level    | Multiplier |
+| ----------------- | ---------: |
+| Sedentary         |       1.20 |
+| Lightly Active    |      1.375 |
+| Moderately Active |       1.55 |
+| Very Active       |      1.725 |
+| Extremely Active  |       1.90 |
+
+These are commonly used activity-factor conventions in TDEE calculators. The labels are estimates rather than precise measurements of how many calories a person burns through activity. ([Calculator.net][1])
+
+### Sedentary
+
+Little planned exercise and relatively little movement during the day, such as primarily desk-based work.
+
+### Lightly Active
+
+Some regular exercise or walking, but most of the day is still relatively low activity.
+
+### Moderately Active
+
+Regular training combined with a meaningful amount of daily movement.
+
+### Very Active
+
+Frequent or intense exercise and/or a physically demanding daily routine.
+
+### Extremely Active
+
+Very high training volume, demanding physical work, or similarly high levels of daily activity.
+
+The best choice is the level that most closely reflects your **overall daily movement**, not simply the number of workouts you complete each week.
+
+---
+
+# TDEE Calculator for Weight Loss
+
+A TDEE calculator can be useful when setting a calorie target for weight loss.
+
+If your estimated TDEE is approximately **2,500 calories per day**, eating below that level creates a calorie deficit relative to the estimate.
+
+The process can be thought of as:
+
+**Estimated TDEE → Calorie Deficit → Weight-Loss Calorie Target**
+
+There is no need to assume that a larger deficit is automatically better. The appropriate target depends on the person, the goal, and how the plan can be followed over time.
+
+For a dedicated calculation, see our **Calorie Deficit Calculator**.
+
+---
+
+---
+
+# TDEE and Maintenance Calories
+
+**Maintenance calories** are the approximate number of calories you need to keep your body weight relatively stable over time.
+
+TDEE is commonly used as the starting estimate for maintenance calories because it represents total daily energy expenditure.
+
+In simple terms:
+
+**Estimated TDEE ≈ Estimated Maintenance Calories**
+
+The two terms are closely related, but neither is a guarantee of what you personally need on every day. Actual energy expenditure changes with activity and other factors.
+
+For a dedicated maintenance calculation, use our **Maintenance Calorie Calculator**.
+
+---
+
+# TDEE vs BMR
+
+TDEE and BMR are related, but they are not the same thing.
+
+|                   | BMR                  | TDEE                             |
+| ----------------- | -------------------- | -------------------------------- |
+| Full name         | Basal Metabolic Rate | Total Daily Energy Expenditure   |
+| Represents        | Resting energy needs | Estimated total daily energy use |
+| Activity included | No                   | Yes                              |
+| Common use        | Starting point       | Maintenance calorie estimate     |
+
+### BMR vs TDEE
+
+Think of **BMR as the starting point** and **TDEE as the broader daily estimate** after activity is taken into account.
+
+That's why you may see both a [BMR calculator](/calculators/bmr-calculator) and a TDEE calculator when researching calorie needs.
+
+---
+
+# TDEE Calculator Formula Options
+
+Different equations can produce somewhat different estimates because they were developed from different datasets and approaches.
+
+### Mifflin-St Jeor
+
+The Mifflin-St Jeor equation estimates resting energy expenditure from weight, height, age, and sex. The original study was based on 498 healthy subjects and found that the equation performed better than the older Harris-Benedict equations in that study population. ([PubMed][2])
+
+### Katch-McArdle
+
+Katch-McArdle uses lean body mass rather than total body weight, making body-composition information important for using the equation. This type of lean-mass approach can be useful when a reasonably good estimate of body composition is available. Calculator.net also includes Katch-McArdle as one of its selectable BMR approaches. ([Calculator.net][1])
+
+### Cunningham
+
+The Cunningham approach uses lean body mass to estimate resting energy expenditure. Cunningham's 1980 analysis identified lean body mass as a strong predictor of BMR and proposed the equation **BMR = 500 + 22 × lean body mass (kg)**. ([PubMed][3])
+
+### Harris-Benedict
+
+The Harris-Benedict equations are among the oldest widely known predictive equations for basal metabolism, originating from research published in the early twentieth century. ([PubMed Central (PMC)][4])
+
+**Important:** the TDEE page should only describe formula options that the actual TDEE calculator implements.
+
+---
+
+# Which TDEE Formula Should I Use?
+
+There is no single equation that will be perfect for every person.
+
+Mifflin-St Jeor is widely used and only requires common measurements such as age, height, weight, and sex. ([PubMed][2])
+
+Equations that use lean body mass, such as Katch-McArdle or Cunningham, require additional body-composition information.
+
+The most useful formula is therefore partly determined by the information you actually have available.
+
+Rather than treating one equation as an absolute answer, compare the estimate with your real-world results over time.
+
+---
+
+# How Accurate Is a TDEE Calculator?
+
+A TDEE calculator cannot tell you exactly how many calories you will burn every day.
+
+TDEE changes from day to day, and calculator estimates depend heavily on the assumptions used for activity and the underlying BMR equation. Calculator.net also notes that TDEE is difficult to measure precisely and varies day by day. ([Calculator.net][1])
+
+A better way to use a TDEE estimate is as a **starting point**.
+
+Track your body-weight trend and routine over several weeks. If your real-world results consistently differ from the expected outcome, your calorie intake or estimated TDEE may need to be adjusted.
+
+---
+
+# What Is the Most Accurate TDEE Calculator?
+
+There is no universal TDEE calculator that can guarantee a perfectly accurate result for every person.
+
+Accuracy depends on:
+
+* the equation being used
+* the quality of the input data
+* how accurately activity is estimated
+* individual differences in energy expenditure
+* changes in body weight and daily movement
+
+For that reason, the most useful TDEE calculator is one that clearly explains its method and gives you a reasonable starting estimate rather than pretending the number is exact.
+
+---
+
+# TDEE Calories
+
+Your TDEE result is expressed in calories per day.
+
+For example:
+
+**2,450 calories/day**
+
+means the calculator estimates that your total daily energy expenditure is approximately 2,450 calories under the assumptions used by the calculation.
+
+It does not mean your body will burn exactly 2,450 calories every day.
+
+---
+
+# Why Your TDEE Changes
+
+Your TDEE can change as your body and routine change.
+
+Common reasons include:
+
+### Body-weight changes
+
+A significant change in body weight can change estimated resting energy needs.
+
+### Activity changes
+
+Starting a new training program or becoming less active can change total energy expenditure.
+
+### Changes in daily movement
+
+A new job, more walking, or a less active routine can affect your overall activity.
+
+### Training volume
+
+Increasing or decreasing exercise can alter total daily energy use.
+
+### Aging
+
+Energy requirements may change as body composition and activity patterns change over time.
+
+For these reasons, an old TDEE estimate should not automatically be treated as your current one.
+
+---
+
+# When Should You Recalculate Your TDEE?
+
+You generally don't need to recalculate your TDEE because of a small change in your routine.
+
+Consider recalculating when there has been a meaningful change in:
+
+* body weight
+* activity level
+* training volume
+* daily routine
+* nutrition goal
+
+For example, someone who loses a substantial amount of weight may want to update their estimated calorie needs rather than continuing to use the calculation they started with.
+
+---
+
+# TDEE and Calorie Deficit
+
+TDEE provides the baseline for a calorie-deficit calculation.
+
+```text
+TDEE
+↓
+Deficit
+↓
+Weight-Loss Calories
+```
+
+A TDEE calculator and a [calorie deficit calculator](/calculators/calorie-deficit-calculator) therefore answer different questions:
+
+**TDEE:** How much energy might I use?
+
+**Calorie Deficit:** What calorie target might I use below that estimate?
+
+That distinction is important because a TDEE result is not itself a prescribed weight-loss calorie target.
+
+---
+
+# TDEE and Muscle Gain
+
+TDEE can also provide a starting point for a muscle-gain calorie target.
+
+```text
+TDEE
+↓
+Calorie Surplus
+↓
+Muscle-Gain Calorie Target
+```
+
+A surplus provides additional energy, but a larger surplus does not automatically mean faster muscle growth.
+
+For a dedicated calculation, use our **Calorie Surplus Calculator**.
+
+---
+
+# TDEE Example
+
+Suppose someone has:
+
+| Metric   |           Example |
+| -------- | ----------------: |
+| Age      |                30 |
+| Sex      |              Male |
+| Weight   |             80 kg |
+| Height   |            180 cm |
+| Activity | Moderately Active |
+
+The calculator first estimates BMR.
+
+It then applies the activity multiplier for **Moderately Active**.
+
+If the resulting BMR were approximately **1,800 calories**, the simplified TDEE calculation would be:
+
+**1,800 × 1.55 = 2,790 calories/day**
+
+The example illustrates the calculation process. Your own TDEE will depend on your actual inputs and the formula selected.
+
+---
+
+# Why Activity Level Matters So Much
+
+Activity level is one of the easiest parts of a TDEE calculation to misjudge.
+
+Two people can have the same age, height, and weight but very different daily energy expenditure because one spends most of the day sitting while the other walks frequently or has a physically demanding job.
+
+That's why choosing an activity level should involve more than counting workouts.
+
+Consider:
+
+* exercise
+* walking
+* occupation
+* household movement
+* general daily activity
+
+A realistic activity selection is more useful than choosing a higher multiplier simply because you exercise regularly. Calculator.net likewise describes activity as including both deliberate exercise and other daily activities. ([Calculator.net][1])
+
+---
+
+# Frequently Asked Questions
+
+Get answers to the most common questions about TDEE.
+
+## What is my TDEE?
+
+Your TDEE is your estimated daily energy expenditure. Enter your personal information and activity level into the calculator to get your estimate.
+
+## How do I calculate my TDEE?
+
+Most calculations start with an estimate of BMR and then multiply it by an activity factor.
+
+## What is a good activity level for TDEE?
+
+Choose the activity level that best represents your overall daily movement, including exercise, walking, work, and other regular activity.
+
+## How many calories should I eat below my TDEE?
+
+That depends on your goal and circumstances. A TDEE estimate can provide the baseline from which a calorie-deficit target is calculated.
+
+## Is TDEE the same as maintenance calories?
+
+TDEE is commonly used as an estimate of maintenance calorie needs, although actual maintenance intake varies between individuals and over time.
+
+## What is the most accurate TDEE formula?
+
+No formula is guaranteed to be the most accurate for every individual. Mifflin-St Jeor is widely used, while equations based on lean body mass require additional body-composition information. ([PubMed][2])
+
+## How often should I recalculate my TDEE?
+
+Recalculate when your body weight, activity, training, or daily routine changes significantly.
+
+## Why is my TDEE different from another calculator?
+
+Different calculators may use different BMR equations, activity assumptions, rounding methods, or other calculation choices.
+
+---
+
+# Scientific References
+
+### Mifflin-St Jeor
+
+Mifflin MD, St Jeor ST, Hill LA, et al. *A new predictive equation for resting energy expenditure in healthy individuals.* American Journal of Clinical Nutrition. 1990;51(2):241–247. DOI: 10.1093/ajcn/51.2.241. PMID: 2305711. ([PubMed][2])
+
+### Cunningham
+
+Cunningham JJ. *A reanalysis of the factors influencing basal metabolic rate in normal adults.* American Journal of Clinical Nutrition. 1980;33(11):2372–2374. DOI: 10.1093/ajcn/33.11.2372. PMID: 7435418. ([PubMed][3])
+
+### Harris-Benedict
+
+Harris JA, Benedict FG. *A Biometric Study of Human Basal Metabolism.* Proceedings of the National Academy of Sciences. 1918;4(12):370–373. DOI: 10.1073/pnas.4.12.370. ([PubMed Central (PMC)][4])
+
+---
+
+[2]: https://pubmed.ncbi.nlm.nih.gov/2305711/
+[3]: https://pubmed.ncbi.nlm.nih.gov/7435418/
+[4]: https://pmc.ncbi.nlm.nih.gov/articles/PMC1740971/

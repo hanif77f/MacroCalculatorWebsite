@@ -5,9 +5,11 @@ import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 import { jsxDEV } from "react/jsx-dev-runtime";
 import type { ComponentProps, ReactNode } from "react";
 import CalculatorWidget from "@/components/CalculatorWidget";
+import SiteLink from "@/components/SiteLink";
+import SectionReveals from "@/components/SectionReveals";
 import { webApplicationSchema, faqSchema } from "@/lib/schema";
 import { getContent } from "@/lib/mdx";
-import { remarkHomepageLayout } from "@/lib/homepage-mdx-layout";
+import { getHomepageSectionLinks, remarkHomepageLayout } from "@/lib/homepage-mdx-layout";
 
 function nodeText(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") return String(node);
@@ -42,6 +44,7 @@ function getTableKind(children: ReactNode) {
 }
 
 const mdxComponents = {
+  a: SiteLink,
   h1: ({ children, ...props }: ComponentProps<"h1">) => <h2 {...props}>{children}</h2>,
   table: ({ children, ...props }: ComponentProps<"table">) => <table {...props} className={`mdx-table ${getTableKind(children)}`}>{children}</table>,
   tr: ({ children, ...props }: ComponentProps<"tr">) => {
@@ -55,6 +58,7 @@ const mdxComponents = {
 export default async function HomePage() {
   const homeContent = getContent("_root", "homepage");
   const mdxSource = homeContent?.content.replace(/^(## .+?) \{#[\w-]+\}$/gm, "$1");
+  const homepageSections = homeContent ? getHomepageSectionLinks(homeContent.content) : [];
   let compiledHome = null;
   if (mdxSource) {
     const { compiledSource, frontmatter, scope } = await serialize(mdxSource, { mdxOptions: { remarkPlugins: [remarkGfm, remarkHomepageLayout], development: false } }, true);
@@ -64,25 +68,29 @@ export default async function HomePage() {
     compiledHome = jsx(Content, { components: mdxComponents });
   }
   const popular = [
-    ["Macro Calculator", "Get your daily protein, carbs and fat targets", "/"],
+    ["Macro Calculator", "Get your daily calorie and macro targets based on your goal, activity level, and body stats.", "/"],
     ["BMR Calculator", "Calculate your basal metabolic rate", "/calculators/bmr-calculator"],
-    ["Weight Loss Calculator", "Create a calorie deficit while keeping protein high", "/calculators/calorie-deficit-calculator"],
-    ["Calorie Calculator", "Find your daily calorie needs", "/calculators/tdee-calculator"],
-    ["Body Fat Calculator", "Estimate your body fat percentage", "/calculators/body-fat-calculator"],
-    ["Muscle Gain Calculator", "Get the right balance of macros for muscle growth", "/calculators/macro-calculator"],
-    ["TDEE Calculator", "Estimate your total daily energy expenditure", "/calculators/tdee-calculator"],
-    ["Lean Body Mass Calculator", "Find your lean body mass", "/calculators/lean-body-mass-calculator"],
-    ["Maintenance Calculator", "Find your ideal macros to maintain your weight", "/calculators/maintenance-calorie-calculator"],
+    ["TDEE Calculator", "Estimate your maintenance calories using trusted formulas.", "/calculators/tdee-calculator"],
+    ["Calorie Calculator", "Estimate your daily calorie needs for maintenance, weight loss, or weight gain.", "/calculators/calorie-calculator"],
+    ["Protein Calculator", "Estimate a practical daily protein target based on your body weight, activity level, and goal.", "/calculators/protein-calculator"],
+    ["Carb Calculator", "Estimate a daily carbohydrate target based on your calorie needs, activity, and goal.", "/calculators/carb-calculator"],
+    ["Fat Intake Calculator", "Calculate your daily dietary fat target in grams from your calorie intake and chosen percentage of calories from fat.", "/calculators/fat-intake-calculator"],
+    ["Body Fat Calculator", "Estimate body fat percentage from your height, neck, waist, hip, weight, and sex using the U.S. Navy circumference method.", "/calculators/body-fat-calculator"],
+    ["Lean Body Mass Calculator", "Compare Boer, James, and Hume equations to estimate lean body mass from your sex, age, height, and weight.", "/calculators/lean-body-mass-calculator"],
+    ["Calorie Deficit Calculator", "Estimate your maintenance calories, select a daily deficit, and find a practical calorie target for weight loss.", "/calculators/calorie-deficit-calculator"],
   ];
-  const guides = ["What Are Macros?", "Macro Ratios Explained", "Tracking Your Macros", "Common Macro Mistakes", "Nutrition Basics"];
-  const schema = [webApplicationSchema("Macro Calculator", "Free daily macro and calorie calculator.", "https://macrocalculators.com"), faqSchema([
-    { question: "What is a macro calculator?", answer: "A macro calculator estimates the protein, carbohydrates, and fat you should eat daily based on your age, sex, weight, height, activity level, and goal." },
-    { question: "How accurate is a macro calculator?", answer: "Treat calculated targets as a starting point and adjust them using your real-world results over time." },
-  ])];
+  const schema = [
+    webApplicationSchema("Macro Calculator", "Calculate daily calories, protein, carbohydrates, and fat targets based on your goals and activity level.", "https://macrocalculators.com"),
+    faqSchema([
+      { question: "What is a macro calculator?", answer: "A macro calculator estimates the protein, carbohydrates, and fat you should eat daily based on your age, sex, weight, height, activity level, and goal." },
+      { question: "How accurate is a macro calculator?", answer: "Treat calculated targets as a starting point and adjust them using your real-world results over time." },
+    ]),
+  ];
 
   return <main className="home-shell">
+    <SectionReveals />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-    <section className="hero-section">
+    <section className="hero-section" id="macro-calculator-form">
       <div className="hero-intro">
         <h1>Calculate Your <span>Macros</span></h1>
         <p>Get your personalized calorie, protein, carbs and fat targets based on your body,<br className="desktop-break" /> activity level and goals.</p>
@@ -94,11 +102,10 @@ export default async function HomePage() {
       <div className="section-heading"><div><h2>Popular Nutritional Calculators</h2><p>Explore our most useful calculators to help you reach your health and fitness goals.</p></div><Link href="/calculators">View All Calculators</Link></div>
       <div className="popular-grid">{popular.map(([title, desc, href]) => <Link key={title} href={href}><strong>{title}</strong><span>{desc}</span></Link>)}</div>
     </section>
-    {compiledHome && <article className="prose prose-neutral mt-16 max-w-none border-t border-line pt-10">{compiledHome}</article>}
-
-    <section className="content-section guide-section">
-      <div className="section-heading"><div><h2>Nutrition Guides</h2><p>Practical, evidence-based guides to help you build better habits and reach your goals.</p></div><Link href="/guides">View All Guides</Link></div>
-      <nav className="guide-links">{guides.map((g, i) => <Link key={g} href={`/guides/${["what-are-macros", "macro-ratios", "tracking-macros", "common-mistakes", "nutrition-basics"][i]}`}>{g}</Link>)}</nav>
-    </section>
+    {homepageSections.length > 0 && <nav aria-label="On this page" className="homepage-toc">
+      <h2>On this page</h2>
+      <ul>{homepageSections.map(({ id, title }) => <li key={id}><a href={`#${id}`}>{title}</a></li>)}</ul>
+    </nav>}
+    {compiledHome && <article className="prose prose-neutral mt-0 max-w-none  border-line pt-10">{compiledHome}</article>}
   </main>;
 }
