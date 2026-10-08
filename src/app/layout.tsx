@@ -4,6 +4,7 @@ import Nav from "@/components/Nav";
 import BackToTop from "@/components/BackToTop";
 import SiteFooter from "@/components/SiteFooter";
 import { OG_IMAGE } from "@/lib/seo";
+import { GoogleTagManager } from '@next/third-parties/google'
 import { organizationSchema, websiteSchema } from "@/lib/schema";
 import "./globals.css";
 
@@ -11,6 +12,7 @@ const dmSerif = DM_Serif_Display({ subsets: ["latin"], weight: "400", variable: 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
 const heroFont = Roboto_Condensed({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-hero" });
+
 
 export const metadata: Metadata = {
   title: "Macro Calculator: Calculate Calories, Protein, Carbs & Fat",
@@ -58,6 +60,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteFooter />
         <BackToTop />
       </body>
+        <GoogleTagManager gtmId="GTM-PNJCTVKN" />
     </html>
   );
 }
+
