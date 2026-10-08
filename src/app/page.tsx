@@ -92,7 +92,7 @@ export default async function HomePage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
     <section className="hero-section" id="macro-calculator-form">
       <div className="hero-intro">
-        <h1>Calculate Your <span>Macros</span></h1>
+        <h1>Macro Calculator: Calculate Your Daily <span>Macros</span></h1>
         <p>Get your personalized calorie, protein, carbs and fat targets based on your body,<br className="desktop-break" /> activity level and goals.</p>
       </div>
       <CalculatorWidget />

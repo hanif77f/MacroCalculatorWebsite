@@ -35,9 +35,7 @@ export const metadata: Metadata = {
     description: "Calculate your daily calories, protein, carbohydrates, and fat based on your goals, activity level, and body metrics.",
     images: [OG_IMAGE],
   },
-  icons: {
-    icon: "/images/logo/favicon.webp",
-  },
+  
   robots: {
     index: true,
     follow: true,
