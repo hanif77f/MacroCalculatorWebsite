@@ -45,7 +45,7 @@ export default function ContactForm() {
       event.currentTarget.reset();
       setFeedback({ type: "success", text: result.message ?? "Your message has been sent." });
     } catch {
-      setFeedback({ type: "error", text: "We could not reach the server. Please try again or email macrocalculators@gmail.com." });
+      setFeedback({ type: "error", text: "We could not reach the server. Please try again or email macrocalculatorss@gmail.com." });
     } finally {
       setIsSubmitting(false);
     }
@@ -58,7 +58,7 @@ export default function ContactForm() {
         <div className="contact-form-intro">
           <h2 id="contact-form-title">How can we help?</h2>
           <p>Fill out the form and we&apos;ll get back to you by email, usually within 48–72 hours.</p>
-          <a href="mailto:macrocalculators@gmail.com">Prefer email? macrocalculators@gmail.com</a>
+          <a href="mailto:macrocalculatorss@gmail.com">Prefer email? macrocalculatorss@gmail.com</a>
         </div>
 
         <form className="contact-form" onSubmit={handleSubmit}>

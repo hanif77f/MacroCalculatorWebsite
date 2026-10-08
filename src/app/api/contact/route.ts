@@ -72,10 +72,10 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.CONTACT_FROM_EMAIL;
-  const to = process.env.CONTACT_TO_EMAIL ?? "macrocalculators@gmail.com";
+  const to = process.env.CONTACT_TO_EMAIL ?? "macrocalculatorss@gmail.com";
   if (!apiKey || !from) {
     console.error("Contact form email is not configured. Set RESEND_API_KEY and CONTACT_FROM_EMAIL.");
-    return Response.json({ error: "The contact form is temporarily unavailable. Please email macrocalculators@gmail.com." }, { status: 503 });
+    return Response.json({ error: "The contact form is temporarily unavailable. Please email macrocalculatorss@gmail.com." }, { status: 503 });
   }
 
   const resend = new Resend(apiKey);
@@ -90,11 +90,11 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error("Resend could not deliver a contact form message:", error.message);
-      return Response.json({ error: "We could not send your message right now. Please try again or email macrocalculators@gmail.com." }, { status: 502 });
+      return Response.json({ error: "We could not send your message right now. Please try again or email macrocalculatorss@gmail.com." }, { status: 502 });
     }
   } catch (error) {
     console.error("Contact form email request failed:", error);
-    return Response.json({ error: "We could not send your message right now. Please try again or email macrocalculators@gmail.com." }, { status: 502 });
+    return Response.json({ error: "We could not send your message right now. Please try again or email macrocalculatorss@gmail.com." }, { status: 502 });
   }
 
   return Response.json({ message: "Thanks for reaching out. Your message has been sent." });

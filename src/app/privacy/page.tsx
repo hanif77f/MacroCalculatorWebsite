@@ -241,7 +241,7 @@ export default function PrivacyPage() {
           <div className="legal-section-content">
             <h2 id="privacy-contact-title">Contact Us</h2>
             <div className="legal-copy">
-              <p>If you have questions about this Privacy Policy or how we handle your information, contact us at: <a href="mailto:macrocalculators@gmail.com">macrocalculators@gmail.com</a></p>
+              <p>If you have questions about this Privacy Policy or how we handle your information, contact us at: <a href="mailto:macrocalculatorss@gmail.com">macrocalculatorss@gmail.com</a></p>
             </div>
           </div>
         </section>

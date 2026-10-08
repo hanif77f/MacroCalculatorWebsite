@@ -250,7 +250,7 @@ export default function TermsOfUsePage() {
             <h2 id="terms-contact-title">Contact Us</h2>
             <div className="legal-copy">
               <p>If you have questions regarding these Terms of Use, please contact us:</p>
-              <p><strong>Email:</strong><br /><a href="mailto:macrocalculators@gmail.com">macrocalculators@gmail.com</a></p>
+              <p><strong>Email:</strong><br /><a href="mailto:macrocalculatorss@gmail.com">macrocalculatorss@gmail.com</a></p>
               <p>Or visit our <Link href="/contact">Contact page</Link> for additional contact information.</p>
             </div>
           </div>

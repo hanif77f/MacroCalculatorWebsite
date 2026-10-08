@@ -9,7 +9,7 @@ export function organizationSchema(options?: { sameAs?: string[] }) {
     name: "MacroCalculators",
     url: "https://macrocalculators.com/",
     logo: "https://macrocalculators.com/images/logo/logo.webp",
-    email: "macrocalculators@gmail.com",
+    email: "macrocalculatorss@gmail.com",
   };
 
   if (options?.sameAs && options.sameAs.length > 0) {
@@ -46,7 +46,7 @@ export function editorialTeamProfileSchema() {
       url: "https://macrocalculators.com/editorial-team",
       description: "The editorial team behind MacroCalculators.com's nutrition and fitness calculators and educational content.",
       logo: "https://macrocalculators.com/images/logo/logo.webp",
-      email: "macrocalculators@gmail.com",
+      email: "macrocalculatorss@gmail.com",
     },
   };
 }

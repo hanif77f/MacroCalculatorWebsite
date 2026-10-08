@@ -149,9 +149,9 @@ export default function EditorialTeamPage() {
         <h2 id="editorial-contact-title">Contact the editorial team.</h2>
         <p>
           Questions, corrections, or reference suggestions can be sent to{" "}
-          <a href="mailto:macrocalculators@gmail.com">macrocalculators@gmail.com</a>.
+          <a href="mailto:macrocalculatorss@gmail.com">macrocalculatorss@gmail.com</a>.
         </p>
-        <a className="about-text-link" href="mailto:macrocalculators@gmail.com">Email the editorial team <span aria-hidden="true">↗</span></a>
+        <a className="about-text-link" href="mailto:macrocalculatorss@gmail.com">Email the editorial team <span aria-hidden="true">↗</span></a>
       </section>
     </main>
   );

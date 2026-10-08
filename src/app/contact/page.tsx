@@ -26,7 +26,7 @@ export default function ContactPage() {
       { name: "Home", url: "https://macrocalculators.com" },
       { name: "Contact", url: "https://macrocalculators.com/contact" },
     ]),
-    contactPageSchema("macrocalculators@gmail.com"),
+    contactPageSchema("macrocalculatorss@gmail.com"),
   ];
 
   return (
@@ -40,9 +40,9 @@ export default function ContactPage() {
           <p>
             We&apos;re always interested in hearing from our visitors. Whether you&apos;ve spotted an issue, have a content suggestion, or simply want to get in touch, feel free to contact us.
           </p>
-          <a className="contact-email-card" href="mailto:macrocalculators@gmail.com">
+          <a className="contact-email-card" href="mailto:macrocalculatorss@gmail.com">
             <span className="contact-email-label">Get in touch by email</span>
-            <strong>macrocalculators@gmail.com</strong>
+            <strong>macrocalculatorss@gmail.com</strong>
             <span className="contact-email-action">Write to us <span aria-hidden="true">↗</span></span>
           </a>
         </div>
@@ -105,7 +105,7 @@ export default function ContactPage() {
       <aside className="contact-bottom-cta">
         <p className="about-eyebrow">Ready when you are</p>
         <p>Send us a note—we appreciate you helping us make MacroCalculators better.</p>
-        <a href="mailto:macrocalculators@gmail.com">Email MacroCalculators <span aria-hidden="true">↗</span></a>
+        <a href="mailto:macrocalculatorss@gmail.com">Email MacroCalculators <span aria-hidden="true">↗</span></a>
       </aside>
     </main>
   );
