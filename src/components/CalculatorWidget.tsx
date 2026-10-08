@@ -82,9 +82,25 @@ export default function CalculatorWidget() {
     }
     setHeightUnit(unit);
   };
-  const result = calculated ? calculateMacros(calculated.form) : null;
-  const selectedRatio = calculated?.ratio ?? (ratio || "balanced");
-  const [proteinPct, carbPct, fatPct] = selectedRatio === "custom" ? customRatio : ratios[selectedRatio];
+  const result = calculated ? calculateMacros({
+    ...calculated.form,
+    split: calculated.form.goal === "keto"
+      ? "keto"
+      : calculated.ratio === "high-protein"
+        ? "highProtein"
+        : calculated.ratio === "low-carb"
+          ? "lowCarb"
+          : calculated.ratio === "custom"
+            ? "custom"
+            : "balanced",
+    ...(calculated.ratio === "custom" && calculated.form.goal !== "keto" ? { customSplit: customRatio } : {}),
+  }) : null;
+  const selectedRatio = calculated?.form.goal === "keto" ? "keto" : calculated?.ratio ?? (ratio || "balanced");
+  const [proteinPct, carbPct, fatPct] = selectedRatio === "keto"
+    ? [25, 5, 70]
+    : selectedRatio === "custom"
+      ? customRatio
+      : ratios[selectedRatio];
   const kcal = result ? Math.round(result.targetKcal * resultProgress) : 0;
   const macros = [
     { label: "Protein", value: result ? Math.round(kcal * proteinPct / 400) : 0, color: "#C4443A", percent: result ? proteinPct : 0, energy: 4 },
@@ -115,7 +131,7 @@ export default function CalculatorWidget() {
       { label: "Height unit", valid: Boolean(heightUnit) },
       { label: "Activity Level", valid: Boolean(form.activity) },
       { label: "Goal", valid: Boolean(form.goal) },
-      { label: "Macro Split", valid: Boolean(ratio) },
+      ...(form.goal === "keto" ? [] : [{ label: "Macro Split", valid: Boolean(ratio) }]),
       ...(!(form.formula === "katch" || form.formula === "cunningham") ? [] : [{
         label: "Body Fat Percentage (3–70%)",
         valid: Number(form.bodyFatPct) >= 3 && Number(form.bodyFatPct) <= 70,
@@ -207,9 +223,9 @@ export default function CalculatorWidget() {
           </>
         )}
       </details>
-      <fieldset className="ratio-field"><legend>Macro Split</legend><div className="ratio-options">{[["balanced", "Balanced", "30% / 40% / 30%"], ["high-protein", "High Protein", "40% / 30% / 30%"], ["low-carb", "Low Carb", "30% / 20% / 50%"], ["custom", "Custom", "Set your own split"]].map(([key, label, sub]) => <button type="button" key={key} className={ratio === key ? "active" : ""} onClick={() => { setRatio(key); setCalculated(null); setResultProgress(0); setValidationMessage(""); }}><i /><span>{label}<small>{sub}</small></span></button>)}</div>
+      {form.goal !== "keto" && <fieldset className="ratio-field"><legend>Macro Split</legend><div className="ratio-options">{[["balanced", "Balanced", "30% / 40% / 30%"], ["high-protein", "High Protein", "40% / 30% / 30%"], ["low-carb", "Low Carb", "30% / 20% / 50%"], ["custom", "Custom", "Set your own split"]].map(([key, label, sub]) => <button type="button" key={key} className={ratio === key ? "active" : ""} onClick={() => { setRatio(key); setCalculated(null); setResultProgress(0); setValidationMessage(""); }}><i /><span>{label}<small>{sub}</small></span></button>)}</div>
         {ratio === "custom" && <div className="custom-ratio-controls">{(["Protein", "Carbs", "Fat"] as const).map((label, index) => <label className={`custom-ratio-row custom-ratio-${label.toLowerCase()}`} key={label}><span>{label}</span><input type="range" min="10" max="70" step="1" value={customRatio[index]} aria-label={`${label} share`} onChange={e => changeCustomRatio(index as 0 | 1 | 2, Number(e.target.value))}/><output>{customRatio[index]}%</output></label>)}</div>}
-      </fieldset>
+      </fieldset>}
       <div className="form-actions"><button className="calculate-button" type="button" onClick={calculate}>Calculate My Macros</button><button className="reset-button" type="button" onClick={reset}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 5.5A5.4 5.4 0 1 1 2.8 9M3.1 2.8v3.4h3.4"/></svg><span>Reset</span></button></div>
       {validationMessage && <p className="calculator-validation-message" role="alert">{validationMessage}</p>}
     </div>
