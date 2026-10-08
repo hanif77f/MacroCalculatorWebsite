@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { calculateMacros, MacroInput } from "@/lib/calculators/macro-calculator";
 import { getCalculatorValidationMessage } from "@/lib/calculator-validation";
-import { ACTIVITY_MULTIPLIERS } from "@/lib/constants";
+import { ACTIVITY_MULTIPLIERS, MACRO_SPLITS } from "@/lib/constants";
 
-const ratios: Record<string, [number, number, number]> = { balanced: [30, 40, 30], "high-protein": [40, 30, 30], "low-carb": [30, 20, 50] };
 const formulaLabels: Record<MacroInput["formula"], string> = {
   mifflin: "Mifflin–St Jeor (Recommended)",
   harris: "Revised Harris-Benedict",
@@ -96,25 +95,26 @@ export default function CalculatorWidget() {
     ...(calculated.ratio === "custom" && calculated.form.goal !== "keto" ? { customSplit: customRatio } : {}),
   }) : null;
   const selectedRatio = calculated?.form.goal === "keto" ? "keto" : calculated?.ratio ?? (ratio || "balanced");
-  const [proteinPct, carbPct, fatPct] = selectedRatio === "keto"
-    ? [25, 5, 70]
-    : selectedRatio === "custom"
-      ? customRatio
-      : ratios[selectedRatio];
+  const selectedPresetSplit = selectedRatio === "high-protein"
+    ? MACRO_SPLITS.highProtein
+    : selectedRatio === "low-carb"
+      ? MACRO_SPLITS.lowCarb
+      : selectedRatio === "keto"
+        ? MACRO_SPLITS.keto
+        : MACRO_SPLITS.balanced;
+  const [proteinPct, carbPct, fatPct] = selectedRatio === "custom"
+    ? customRatio
+    : selectedPresetSplit.map((share) => share * 100);
   const kcal = result ? Math.round(result.targetKcal * resultProgress) : 0;
   const macros = [
-    { label: "Protein", value: result ? Math.round(kcal * proteinPct / 400) : 0, color: "#C4443A", percent: result ? proteinPct : 0, energy: 4 },
-    { label: "Carbs", value: result ? Math.round(kcal * carbPct / 400) : 0, color: "#D9A441", percent: result ? carbPct : 0, energy: 4 },
-    { label: "Fat", value: result ? Math.round(kcal * fatPct / 900) : 0, color: "#5B7A6B", percent: result ? fatPct : 0, energy: 9 },
+    { label: "Protein", value: result ? Math.round(result.protein * resultProgress) : 0, color: "#C4443A", percent: result?.actualProteinShare ?? 0, energy: 4 },
+    { label: "Carbs", value: result ? Math.round(result.carbs * resultProgress) : 0, color: "#D9A441", percent: result?.actualCarbShare ?? 0, energy: 4 },
+    { label: "Fat", value: result ? Math.round(result.fat * resultProgress) : 0, color: "#5B7A6B", percent: result?.actualFatShare ?? 0, energy: 9 },
   ];
   const selectedActivity = calculated?.form.activity;
   const selectedGoal = calculated?.form.goal;
   const selectedFormula = result?.formulaUsed;
-  const planMacros = result ? [
-    Math.round(result.targetKcal * proteinPct / 400),
-    Math.round(result.targetKcal * carbPct / 400),
-    Math.round(result.targetKcal * fatPct / 900),
-  ] : [];
+  const planMacros = result ? [result.protein, result.carbs, result.fat] : [];
   const goalMeaning: Record<MacroInput["goal"], string> = {
     lose: "This estimate uses a calorie target below estimated daily energy expenditure.",
     build: "This estimate uses a calorie target above estimated daily energy expenditure.",

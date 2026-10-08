@@ -474,7 +474,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible { 
 .ring-progress,.mdx-ring-progress { transition:stroke-dashoffset 700ms cubic-bezier(.2,.7,.2,1); }
 .ring-inner { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; }
 .ring-inner strong { font:700 22px var(--font-space-grotesk),Arial,sans-serif; font-variant-numeric:tabular-nums; }.ring-inner strong small { font-size:15px; }
-.ring-inner span { font-size:13px; }.ring-inner em { margin-top:3px; color:var(--muted); font-style:normal; font-size:12px; }
+.ring-inner span { font-size:13px; }.ring-inner em { display:none; }
 .macro-ring>p { margin:8px 0 0; font-size:13px; }
 .content-section { border-top:1px solid var(--line); padding:34px 8px 36px; }.popular-section { margin-top:30px; border-top:0; padding-top:0; }
 .content-section h2 { margin:0; font:400 25px/1.15 var(--font-dm-serif),Georgia,serif; letter-spacing:-.3px; }
