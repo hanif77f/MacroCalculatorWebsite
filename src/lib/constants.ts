@@ -3,11 +3,12 @@
 // inside individual calculator files.
 
 export const ACTIVITY_LEVELS = {
-  sedentary: { label: "Sedentary", multiplier: 1.2, hint: "little or no exercise" },
-  light: { label: "Lightly Active", multiplier: 1.375, hint: "1 to 3 days/week" },
-  moderate: { label: "Moderately Active", multiplier: 1.55, hint: "3 to 5 days/week" },
-  veryActive: { label: "Very Active", multiplier: 1.725, hint: "6 to 7 days/week" },
-  extremelyActive: { label: "Extremely Active", multiplier: 1.9, hint: "hard daily training or a physical job" },
+  sedentary: { label: "Sedentary", multiplier: 1.2, hint: "Little or no exercise" },
+  "lightly-active": { label: "Lightly Active", multiplier: 1.375, hint: "Exercise 1–3 times per week" },
+  "moderately-active": { label: "Moderately Active", multiplier: 1.465, hint: "Exercise 4–5 times per week" },
+  active: { label: "Active", multiplier: 1.55, hint: "Daily exercise or intense exercise 3–4 times per week" },
+  "very-active": { label: "Very Active", multiplier: 1.725, hint: "Intense exercise 6–7 times per week" },
+  "extra-active": { label: "Extra Active", multiplier: 1.9, hint: "Very intense exercise daily or a physically demanding job" },
 } as const;
 
 export const ACTIVITY_MULTIPLIERS = Object.fromEntries(
@@ -28,10 +29,20 @@ export const KCAL_PER_GRAM = {
   alcohol: 7,
 } as const;
 
+export const MACRO_KCAL_PER_GRAM = {
+  protein: 4.1,
+  carbs: 3.75,
+  fat: 8.8,
+} as const;
+
+/** @deprecated Use MACRO_KCAL_PER_GRAM. */
+export const REFERENCE_PRESET_KCAL_PER_GRAM = MACRO_KCAL_PER_GRAM;
+
 export const MACRO_SPLITS = {
-  balanced: [0.3, 0.4, 0.3],
-  highProtein: [0.4, 0.3, 0.3],
-  lowCarb: [0.3, 0.2, 0.5],
+  balanced: [0.25, 0.5, 0.25],
+  lowFat: [0.275, 0.525, 0.2],
+  lowCarb: [0.3, 0.4, 0.3],
+  highProtein: [0.35, 0.425, 0.225],
   keto: [0.25, 0.05, 0.7],
 } as const;
 
@@ -39,14 +50,24 @@ export const MACRO_SPLITS = {
 export const LEGACY_MACRO_SPLITS = {
   lose: [0.4, 0.35, 0.25],
   build: [0.3, 0.45, 0.25],
-  maintain: MACRO_SPLITS.balanced,
-  keto: MACRO_SPLITS.keto,
+  maintain: [0.3, 0.4, 0.3],
+  keto: [0.25, 0.05, 0.7],
 } as const;
 
 export const GOAL_CALORIE_ADJUSTMENTS = {
   lose: -0.15,
   maintain: 0,
   muscleGain: 0.1,
+} as const;
+
+export const MACRO_CALORIE_GOALS = {
+  maintain: { label: "Maintain weight", adjustmentKcal: 0, weeklyWeightChangeKg: undefined },
+  "lose-mild": { label: "Mild weight loss — 0.25 kg (0.5 lb) per week", adjustmentKcal: -250, weeklyWeightChangeKg: -0.25 },
+  "lose-standard": { label: "Weight loss — 0.5 kg (1 lb) per week", adjustmentKcal: -500, weeklyWeightChangeKg: -0.5 },
+  "lose-fast": { label: "Faster weight loss — 1 kg (2 lb) per week", adjustmentKcal: -1000, weeklyWeightChangeKg: -1 },
+  "gain-mild": { label: "Mild weight gain — 0.25 kg (0.5 lb) per week", adjustmentKcal: 250, weeklyWeightChangeKg: 0.25 },
+  "gain-standard": { label: "Weight gain — 0.5 kg (1 lb) per week", adjustmentKcal: 500, weeklyWeightChangeKg: 0.5 },
+  "gain-fast": { label: "Faster weight gain — 1 kg (2 lb) per week", adjustmentKcal: 1000, weeklyWeightChangeKg: 1 },
 } as const;
 
 /** @deprecated Use GOAL_CALORIE_ADJUSTMENTS; values are TDEE fractions, not kcal. */

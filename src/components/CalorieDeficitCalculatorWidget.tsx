@@ -1,31 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { ACTIVITY_MULTIPLIERS } from "@/lib/constants";
+import { ACTIVITY_LEVELS, ACTIVITY_MULTIPLIERS } from "@/lib/constants";
+import { ACTIVITY_OPTIONS } from "@/lib/calculator-standardization";
+import { centimetersToFeetAndInches, inchesToCentimeters, kilogramsToPounds, poundsToKilograms } from "@/lib/calculator-unit-conversions";
+import { useCalculatorUnitSystem } from "@/lib/use-calculator-unit-system";
 import { calculateCalorieDeficit, type CalorieDeficitResult } from "@/lib/calculators/calorie-deficit-calculator";
 import type { BmrInput, MacroInput } from "@/lib/calculators/macro-calculator";
 import { getCalculatorValidationMessage } from "@/lib/calculator-validation";
 
 type ActivityLevel = MacroInput["activity"];
 type Formula = MacroInput["formula"];
-type UnitSystem = "metric" | "imperial";
 type DeficitAmount = 250 | 500 | 750 | 1000;
-
-const activityLabels: Record<ActivityLevel, string> = {
-  sedentary: "Sedentary",
-  light: "Lightly Active",
-  moderate: "Moderately Active",
-  veryActive: "Active",
-  extremelyActive: "Very Active",
-};
-
-const activityDescriptions: Record<ActivityLevel, string> = {
-  sedentary: "Little planned exercise and mostly sitting during the day.",
-  light: "Light exercise or frequent walking.",
-  moderate: "Regular moderate exercise and everyday movement.",
-  veryActive: "Frequent exercise or a physically active lifestyle.",
-  extremelyActive: "Hard training and/or physically demanding activity.",
-};
 
 const formulaLabels: Record<Formula, string> = {
   mifflin: "Mifflin-St Jeor",
@@ -42,7 +28,7 @@ const deficitOptions: { value: DeficitAmount; label: string }[] = [
 ];
 
 export default function CalorieDeficitCalculatorWidget() {
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>("imperial");
+  const [unitSystem, setUnitSystem] = useCalculatorUnitSystem();
   const [age, setAge] = useState("");
   const [sex, setSex] = useState<BmrInput["sex"]>("male");
   const [weightKg, setWeightKg] = useState("");
@@ -108,17 +94,18 @@ export default function CalorieDeficitCalculatorWidget() {
 
   const updateWeight = (value: string) => {
     const parsed = Number(value);
-    updateInput(() => setWeightKg(value ? String(unitSystem === "imperial" ? parsed / 2.20462 : parsed) : ""));
+    updateInput(() => setWeightKg(value ? String(unitSystem === "imperial" ? poundsToKilograms(parsed) : parsed) : ""));
   };
   const updateHeight = (value: string) => {
     const parsed = Number(value);
-    updateInput(() => setHeightCm(value ? String(unitSystem === "imperial" ? parsed * 2.54 : parsed) : ""));
+    updateInput(() => setHeightCm(value ? String(unitSystem === "imperial" ? inchesToCentimeters(parsed) : parsed) : ""));
   };
   const toDisplayWeight = (value: string) => value
-    ? String(Math.round(Number(value) * (unitSystem === "imperial" ? 2.20462 : 1) * 10) / 10)
+    ? String(Math.round((unitSystem === "imperial" ? kilogramsToPounds(Number(value)) : Number(value)) * 10) / 10)
     : "";
+  const imperialHeight = centimetersToFeetAndInches(Number(heightCm));
   const weeklyRate = (kg: number) => unitSystem === "imperial"
-    ? `${(kg * 2.20462).toFixed(1)} lb/week`
+    ? `${kilogramsToPounds(kg).toFixed(1)} lb/week`
     : `${kg.toFixed(1)} kg/week`;
   const formatDuration = (weeks: number) => {
     if (weeks < 1) return "Less than 1 week";
@@ -132,7 +119,7 @@ export default function CalorieDeficitCalculatorWidget() {
   const targetWeightLoss = result?.estimatedWeightToLoseKg === undefined
     ? null
     : unitSystem === "imperial"
-      ? `${(result.estimatedWeightToLoseKg * 2.20462).toFixed(1)} lb`
+      ? `${kilogramsToPounds(result.estimatedWeightToLoseKg).toFixed(1)} lb`
       : `${result.estimatedWeightToLoseKg.toFixed(1)} kg`;
 
   return (
@@ -141,7 +128,7 @@ export default function CalorieDeficitCalculatorWidget() {
         <div className="tdee-form-heading">
           <h2>Your Details</h2>
           <div aria-label="Measurement units" className="tdee-unit-toggle">
-            {(["metric", "imperial"] as const).map((unit) => (
+            {(["imperial", "metric"] as const).map((unit) => (
               <button aria-pressed={unitSystem === unit} className={unitSystem === unit ? "selected" : ""} key={unit} onClick={() => { setUnitSystem(unit); setResult(null); setEstimatedDate(null); setError(""); setValidationMessage(""); }} type="button">
                 {unit === "metric" ? "Metric" : "Imperial"}
               </button>
@@ -166,49 +153,46 @@ export default function CalorieDeficitCalculatorWidget() {
             <div className="input-unit"><input max="100" min="18" onChange={(event) => updateInput(() => setAge(event.target.value))} step="1" type="number" value={age} /><i>years</i></div>
           </label>
           <label className="field">
-            <span>Current Weight</span>
+            <span>Weight</span>
             <div className="input-unit"><input aria-label={`Current weight in ${unitSystem === "imperial" ? "lb" : "kg"}`} min="1" onChange={(event) => updateWeight(event.target.value)} type="number" value={toDisplayWeight(weightKg)} /><i>{unitSystem === "imperial" ? "lb" : "kg"}</i></div>
           </label>
-          {unitSystem === "metric" ? (
-            <label className="field">
-              <span>Height</span>
+          <label className="field">
+            <span>Height</span>
+            {unitSystem === "metric" ? (
               <div className="input-unit"><input aria-label="Height in cm" min="1" onChange={(event) => updateHeight(event.target.value)} type="number" value={heightCm ? String(Math.round(Number(heightCm) * 10) / 10) : ""} /><i>cm</i></div>
-            </label>
-          ) : (
-            <div className="calorie-deficit-height-fields">
-              <label className="field">
-                <span>Height</span>
-                <div className="input-unit"><input aria-label="Height in feet" min="0" onChange={(event) => {
-                  const totalInches = Number(event.target.value) * 12 + (heightCm ? Number(heightCm) / 2.54 % 12 : 0);
+            ) : (
+              <div className="input-unit height-feet">
+                <input aria-label="Height in feet" min="0" onChange={(event) => {
+                  const totalInches = Number(event.target.value) * 12 + imperialHeight.inches;
                   updateHeight(totalInches ? String(totalInches) : "");
-                }} type="number" value={heightCm ? String(Math.floor(Number(heightCm) / 2.54 / 12)) : ""} /><i>ft</i></div>
-              </label>
-              <label className="field">
-                <span aria-hidden="true">&nbsp;</span>
-                <div className="input-unit"><input aria-label="Height in inches" max="11.9" min="0" onChange={(event) => {
-                  const feet = heightCm ? Math.floor(Number(heightCm) / 2.54 / 12) : 0;
+                }} type="number" value={heightCm ? String(imperialHeight.feet) : ""} /><i>ft</i>
+                <input aria-label="Height in inches" max="11.9" min="0" onChange={(event) => {
+                  const feet = heightCm ? imperialHeight.feet : 0;
                   updateHeight(String(feet * 12 + Number(event.target.value)));
-                }} type="number" value={heightCm ? String(Math.round((Number(heightCm) / 2.54 % 12) * 10) / 10) : ""} /><i>in</i></div>
-              </label>
-            </div>
-          )}
+                }} type="number" value={heightCm ? String(Math.round(imperialHeight.inches * 10) / 10) : ""} /><i>in</i>
+              </div>
+            )}
+          </label>
         </div>
 
-        <label className="field">
-          <span>Activity Level</span>
-          <select onChange={(event) => updateInput(() => setActivity(event.target.value as ActivityLevel | ""))} value={activity}>
-            <option value="">Select your usual activity</option>
-            {(Object.keys(ACTIVITY_MULTIPLIERS) as ActivityLevel[]).map((level) => <option key={level} value={level}>{activityLabels[level]}</option>)}
-          </select>
-        </label>
-        {activity && <p className="tdee-activity-description">{activityDescriptions[activity]}</p>}
-
-        <label className="field">
-          <span>Daily Calorie Deficit</span>
-          <select onChange={(event) => updateInput(() => setDeficit(Number(event.target.value) as DeficitAmount))} value={deficit}>
-            {deficitOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </select>
-        </label>
+        <div className="calculator-selection-row">
+          <div>
+            <label className="field">
+              <span>Activity Level</span>
+              <select onChange={(event) => updateInput(() => setActivity(event.target.value as ActivityLevel | ""))} value={activity}>
+                <option value="">Select activity level</option>
+                {(Object.keys(ACTIVITY_MULTIPLIERS) as ActivityLevel[]).map((level) => <option key={level} value={level}>{ACTIVITY_OPTIONS.find((option) => option.value === level)?.label}</option>)}
+              </select>
+            </label>
+            {activity && <p className="tdee-activity-description">{ACTIVITY_LEVELS[activity].hint}</p>}
+          </div>
+          <label className="field">
+            <span>Daily Calorie Deficit</span>
+            <select onChange={(event) => updateInput(() => setDeficit(Number(event.target.value) as DeficitAmount))} value={deficit}>
+              {deficitOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+        </div>
 
         <details className="calorie-deficit-goal-options">
           <summary>Optional Weight Goal</summary>
@@ -218,7 +202,7 @@ export default function CalorieDeficitCalculatorWidget() {
             <div className="input-unit"><input aria-label={`Goal weight in ${unitSystem === "imperial" ? "lb" : "kg"}`} min="1" onChange={(event) => {
               const value = event.target.value;
               const parsed = Number(value);
-              updateInput(() => setTargetWeightKg(value ? String(unitSystem === "imperial" ? parsed / 2.20462 : parsed) : ""));
+              updateInput(() => setTargetWeightKg(value ? String(unitSystem === "imperial" ? poundsToKilograms(parsed) : parsed) : ""));
             }} type="number" value={toDisplayWeight(targetWeightKg)} /><i>{unitSystem === "imperial" ? "lb" : "kg"}</i></div>
           </label>
           {result && targetWeightLoss && result.estimatedTimeWeeks !== undefined && estimatedDate && (

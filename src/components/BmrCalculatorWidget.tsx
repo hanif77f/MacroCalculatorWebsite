@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { calculateBmr, type BmrInput } from "@/lib/calculators/macro-calculator";
 import { getCalculatorValidationMessage } from "@/lib/calculator-validation";
+import { centimetersToFeetAndInches, feetAndInchesToCentimeters, inchesToCentimeters, kilogramsToPounds, poundsToKilograms } from "@/lib/calculator-unit-conversions";
+import { useCalculatorUnitSystem } from "@/lib/use-calculator-unit-system";
 
 type Formula = BmrInput["formula"];
-type UnitSystem = "metric" | "imperial";
 
 const formulaLabels: Record<Formula, string> = {
   mifflin: "Mifflin-St Jeor",
@@ -15,7 +16,7 @@ const formulaLabels: Record<Formula, string> = {
 };
 
 export default function BmrCalculatorWidget() {
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
+  const [unitSystem, setUnitSystem] = useCalculatorUnitSystem();
   const [age, setAge] = useState("");
   const [sex, setSex] = useState<BmrInput["sex"]>("male");
   const [weightKg, setWeightKg] = useState("");
@@ -54,13 +55,18 @@ export default function BmrCalculatorWidget() {
 
   const updateWeight = (value: string) => {
     const parsed = Number(value);
-    updateInput(() => setWeightKg(value ? String(unitSystem === "imperial" ? parsed / 2.20462 : parsed) : ""));
+    updateInput(() => setWeightKg(value ? String(unitSystem === "imperial" ? poundsToKilograms(parsed) : parsed) : ""));
   };
 
   const updateHeight = (value: string) => {
     const parsed = Number(value);
-    updateInput(() => setHeightCm(value ? String(unitSystem === "imperial" ? parsed * 2.54 : parsed) : ""));
+    updateInput(() => setHeightCm(value ? String(unitSystem === "imperial" ? inchesToCentimeters(parsed) : parsed) : ""));
   };
+  const updateImperialHeight = (feet: string, inches: string) => {
+    const height = feetAndInchesToCentimeters(Number(feet) || 0, Number(inches) || 0);
+    updateInput(() => setHeightCm(feet || inches ? String(height) : ""));
+  };
+  const imperialHeight = centimetersToFeetAndInches(Number(heightCm));
 
   return (
     <section className="calculator-panel tdee-calculator-panel bmr-calculator-panel" aria-label="BMR calculator">
@@ -68,10 +74,10 @@ export default function BmrCalculatorWidget() {
         <div className="tdee-form-heading">
           <div>
             <h2>Your Details</h2>
-            <p className="bmr-form-helper">Enter your information to calculate your BMR.</p>
+
           </div>
           <div className="tdee-unit-toggle" aria-label="Unit system">
-            {(["metric", "imperial"] as const).map((unit) => (
+            {(["imperial", "metric"] as const).map((unit) => (
               <button
                 aria-pressed={unitSystem === unit}
                 className={unitSystem === unit ? "selected" : ""}
@@ -108,16 +114,23 @@ export default function BmrCalculatorWidget() {
           </label>
           <label className="field">
             <span>Weight</span>
-            <div className="input-unit"><input aria-label={`Weight in ${unitSystem === "metric" ? "kg" : "lb"}`} min="1" onChange={(event) => updateWeight(event.target.value)} type="number" value={weightKg ? String(Math.round(Number(weightKg) * (unitSystem === "imperial" ? 2.20462 : 1) * 10) / 10) : ""} /><i>{unitSystem === "metric" ? "kg" : "lb"}</i></div>
+            <div className="input-unit"><input aria-label={`Weight in ${unitSystem === "metric" ? "kg" : "lb"}`} min="1" onChange={(event) => updateWeight(event.target.value)} type="number" value={weightKg ? String(Math.round((unitSystem === "imperial" ? kilogramsToPounds(Number(weightKg)) : Number(weightKg)) * 10) / 10) : ""} /><i>{unitSystem === "metric" ? "kg" : "lb"}</i></div>
           </label>
           <label className="field">
             <span>Height</span>
-            <div className="input-unit"><input aria-label={`Height in ${unitSystem === "metric" ? "cm" : "in"}`} min="1" onChange={(event) => updateHeight(event.target.value)} type="number" value={heightCm ? String(Math.round(Number(heightCm) * (unitSystem === "imperial" ? 1 / 2.54 : 1) * 10) / 10) : ""} /><i>{unitSystem === "metric" ? "cm" : "in"}</i></div>
+            {unitSystem === "metric" ? (
+              <div className="input-unit"><input aria-label="Height in centimeters" min="1" onChange={(event) => updateHeight(event.target.value)} type="number" value={heightCm ? String(Math.round(Number(heightCm) * 10) / 10) : ""} /><i>cm</i></div>
+            ) : (
+              <div className="input-unit height-feet">
+                <input aria-label="Height in feet" min="1" onChange={(event) => updateImperialHeight(event.target.value, String(Math.round(imperialHeight.inches * 10) / 10))} type="number" value={heightCm ? String(imperialHeight.feet) : ""} /><i>ft</i>
+                <input aria-label="Height in inches" max="11.9" min="0" onChange={(event) => updateImperialHeight(String(imperialHeight.feet), event.target.value)} step="0.1" type="number" value={heightCm ? String(Math.round(imperialHeight.inches * 10) / 10) : ""} /><i>in</i>
+              </div>
+            )}
           </label>
         </div>
 
-        <details className="tdee-formula-options" open>
-          <summary>Calculation Method</summary>
+        <details className="tdee-formula-options">
+          <summary>Advanced Settings</summary>
           <label className="field">
             <span>Formula</span>
             <select onChange={(event) => updateInput(() => setFormula(event.target.value as Formula))} value={formula}>

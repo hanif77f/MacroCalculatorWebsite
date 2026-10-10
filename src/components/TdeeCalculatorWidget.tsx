@@ -1,34 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { ACTIVITY_MULTIPLIERS } from "@/lib/constants";
+import { ACTIVITY_LEVELS, ACTIVITY_MULTIPLIERS } from "@/lib/constants";
 import { calculateTdee } from "@/lib/calculators/tdee-calculator";
 import type { MacroInput } from "@/lib/calculators/macro-calculator";
 import { getCalculatorValidationMessage } from "@/lib/calculator-validation";
+import { ACTIVITY_OPTIONS } from "@/lib/calculator-standardization";
+import { centimetersToFeetAndInches, feetAndInchesToCentimeters, inchesToCentimeters, kilogramsToPounds, poundsToKilograms } from "@/lib/calculator-unit-conversions";
+import { useCalculatorUnitSystem } from "@/lib/use-calculator-unit-system";
 
 type ActivityLevel = MacroInput["activity"];
 type Formula = MacroInput["formula"];
-type UnitSystem = "metric" | "imperial";
 type TdeeInput = Omit<MacroInput, "goal">;
 
-const activityLabels: Record<ActivityLevel, string> = {
-  sedentary: "Sedentary",
-  light: "Lightly Active",
-  moderate: "Moderately Active",
-  veryActive: "Very Active",
-  extremelyActive: "Extremely Active",
-};
-
-const activityDescriptions: Record<ActivityLevel, string> = {
-  sedentary: "Little planned exercise and mostly sitting during the day.",
-  light: "Light exercise or sports 1–3 days per week.",
-  moderate: "Moderate exercise 3–5 days per week.",
-  veryActive: "Hard exercise 6–7 days per week.",
-  extremelyActive: "Very hard exercise, physical work, or training twice daily.",
-};
-
 export default function TdeeCalculatorWidget() {
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
+  const [unitSystem, setUnitSystem] = useCalculatorUnitSystem();
   const [age, setAge] = useState("");
   const [sex, setSex] = useState<TdeeInput["sex"]>("male");
   const [weightKg, setWeightKg] = useState("");
@@ -70,12 +56,17 @@ export default function TdeeCalculatorWidget() {
 
   const updateWeight = (value: string) => {
     const parsed = Number(value);
-    updateInput(() => setWeightKg(value ? String(unitSystem === "imperial" ? parsed / 2.20462 : parsed) : ""));
+    updateInput(() => setWeightKg(value ? String(unitSystem === "imperial" ? poundsToKilograms(parsed) : parsed) : ""));
   };
   const updateHeight = (value: string) => {
     const parsed = Number(value);
-    updateInput(() => setHeightCm(value ? String(unitSystem === "imperial" ? parsed * 2.54 : parsed) : ""));
+    updateInput(() => setHeightCm(value ? String(unitSystem === "imperial" ? inchesToCentimeters(parsed) : parsed) : ""));
   };
+  const updateImperialHeight = (feet: string, inches: string) => {
+    const height = feetAndInchesToCentimeters(Number(feet) || 0, Number(inches) || 0);
+    updateInput(() => setHeightCm(feet || inches ? String(height) : ""));
+  };
+  const imperialHeight = centimetersToFeetAndInches(Number(heightCm));
 
   return (
     <section className="calculator-panel tdee-calculator-panel" aria-label="TDEE calculator">
@@ -83,7 +74,7 @@ export default function TdeeCalculatorWidget() {
         <div className="tdee-form-heading">
           <h2>Your Details</h2>
           <div className="tdee-unit-toggle" aria-label="Unit system">
-            {(["metric", "imperial"] as const).map((unit) => (
+            {(["imperial", "metric"] as const).map((unit) => (
               <button
                 aria-pressed={unitSystem === unit}
                 className={unitSystem === unit ? "selected" : ""}
@@ -120,27 +111,34 @@ export default function TdeeCalculatorWidget() {
           </label>
           <label className="field">
             <span>Weight</span>
-            <div className="input-unit"><input aria-label={`Weight in ${unitSystem === "metric" ? "kg" : "lb"}`} min="1" onChange={(event) => updateWeight(event.target.value)} type="number" value={weightKg ? String(Math.round(Number(weightKg) * (unitSystem === "imperial" ? 2.20462 : 1) * 10) / 10) : ""} /><i>{unitSystem === "metric" ? "kg" : "lb"}</i></div>
+            <div className="input-unit"><input aria-label={`Weight in ${unitSystem === "metric" ? "kg" : "lb"}`} min="1" onChange={(event) => updateWeight(event.target.value)} type="number" value={weightKg ? String(Math.round((unitSystem === "imperial" ? kilogramsToPounds(Number(weightKg)) : Number(weightKg)) * 10) / 10) : ""} /><i>{unitSystem === "metric" ? "kg" : "lb"}</i></div>
           </label>
           <label className="field">
             <span>Height</span>
-            <div className="input-unit"><input aria-label={`Height in ${unitSystem === "metric" ? "cm" : "in"}`} min="1" onChange={(event) => updateHeight(event.target.value)} type="number" value={heightCm ? String(Math.round(Number(heightCm) * (unitSystem === "imperial" ? 1 / 2.54 : 1) * 10) / 10) : ""} /><i>{unitSystem === "metric" ? "cm" : "in"}</i></div>
+            {unitSystem === "metric" ? (
+              <div className="input-unit"><input aria-label="Height in centimeters" min="1" onChange={(event) => updateHeight(event.target.value)} type="number" value={heightCm ? String(Math.round(Number(heightCm) * 10) / 10) : ""} /><i>cm</i></div>
+            ) : (
+              <div className="input-unit height-feet">
+                <input aria-label="Height in feet" min="1" onChange={(event) => updateImperialHeight(event.target.value, String(Math.round(imperialHeight.inches * 10) / 10))} type="number" value={heightCm ? String(imperialHeight.feet) : ""} /><i>ft</i>
+                <input aria-label="Height in inches" max="11.9" min="0" onChange={(event) => updateImperialHeight(String(imperialHeight.feet), event.target.value)} step="0.1" type="number" value={heightCm ? String(Math.round(imperialHeight.inches * 10) / 10) : ""} /><i>in</i>
+              </div>
+            )}
           </label>
         </div>
 
         <label className="field">
           <span>Activity Level</span>
           <select onChange={(event) => updateInput(() => setActivity(event.target.value as ActivityLevel | ""))} value={activity}>
-            <option value="">Select your usual activity</option>
+            <option value="">Select activity level</option>
             {(Object.keys(ACTIVITY_MULTIPLIERS) as ActivityLevel[]).map((level) => (
-              <option key={level} value={level}>{activityLabels[level]}</option>
+              <option key={level} value={level}>{ACTIVITY_OPTIONS.find((option) => option.value === level)?.label}</option>
             ))}
           </select>
         </label>
-        {activity && <p className="tdee-activity-description">{activityDescriptions[activity]}</p>}
+        {activity && <p className="tdee-activity-description">{ACTIVITY_LEVELS[activity].hint}</p>}
 
         <details className="tdee-formula-options">
-          <summary>Formula options</summary>
+          <summary>Advanced Settings</summary>
           <label className="field">
             <span>BMR formula</span>
             <select onChange={(event) => updateInput(() => setFormula(event.target.value as Formula))} value={formula}>
@@ -176,7 +174,7 @@ export default function TdeeCalculatorWidget() {
             <span>BMR</span>
           </div>
           <div className="tdee-result-metric">
-            <div className="tdee-stat-ring"><strong>{activity ? ACTIVITY_MULTIPLIERS[activity].toFixed(2) : "—"}</strong></div>
+            <div className="tdee-stat-ring"><strong>{activity ? ACTIVITY_MULTIPLIERS[activity] : "—"}</strong></div>
             <span>Activity multiplier</span>
           </div>
           <div className="tdee-result-metric">

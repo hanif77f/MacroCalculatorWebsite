@@ -2,18 +2,27 @@ import {
   ACTIVITY_MULTIPLIERS,
   CALCULATOR_INPUT_LIMITS,
   GOAL_CALORIE_ADJUSTMENTS,
-  KCAL_PER_GRAM,
   LEGACY_MACRO_SPLITS,
+  MACRO_CALORIE_GOALS,
   MACRO_SPLITS,
   MINIMUM_CALORIE_WARNING_THRESHOLDS,
   MINIMUM_FAT_CALORIE_SHARE,
   PROTEIN_TARGET_G_PER_KG,
+  MACRO_KCAL_PER_GRAM,
 } from "@/lib/constants";
 
 export type MacroSplit = keyof typeof MACRO_SPLITS;
-export type MacroGoal = "lose" | "maintain" | "build" | "keto";
+export type MacroGoal = "lose" | "maintain" | "build" | "keto" | keyof typeof MACRO_CALORIE_GOALS;
 export type CanonicalMacroGoal = keyof typeof GOAL_CALORIE_ADJUSTMENTS;
 export type BmrFormula = "mifflin" | "katch" | "cunningham" | "harris";
+
+function isMacroCalorieGoal(goal: string): goal is keyof typeof MACRO_CALORIE_GOALS {
+  return Object.prototype.hasOwnProperty.call(MACRO_CALORIE_GOALS, goal);
+}
+
+function isLegacyMacroGoal(goal: MacroGoal): goal is keyof typeof LEGACY_MACRO_SPLITS {
+  return Object.prototype.hasOwnProperty.call(LEGACY_MACRO_SPLITS, goal);
+}
 
 export interface MacroInput {
   weightKg: number;
@@ -90,6 +99,10 @@ export function convertWeightToKg(weight: number, unit: "kg" | "lb") {
   return unit === "kg" ? weight : weight / 2.20462;
 }
 
+export function convertWeightFromKg(weightKg: number, unit: "kg" | "lb") {
+  return unit === "kg" ? weightKg : weightKg * 2.20462;
+}
+
 export function convertHeightToCm(height: number, unit: "cm" | "in") {
   return unit === "cm" ? height : height * 2.54;
 }
@@ -119,7 +132,7 @@ function validateBmrInput(input: BmrInput) {
   }
 }
 
-export function calculateBmr(input: BmrInput) {
+function calculateBmrDetails(input: BmrInput) {
   validateBmrInput(input);
   const { weightKg, heightCm, age, sex, formula, bodyFatPct } = input;
   const bodyFatFallback = (formula === "katch" || formula === "cunningham")
@@ -127,18 +140,31 @@ export function calculateBmr(input: BmrInput) {
 
   if ((formula === "katch" || formula === "cunningham") && bodyFatPct !== undefined && bodyFatPct !== 0) {
     const leanBodyMass = weightKg * (1 - bodyFatPct / 100);
+    const unroundedBmr = formula === "katch" ? bmrKatch(leanBodyMass) : bmrCunningham(leanBodyMass);
     return {
-      bmr: Math.round(formula === "katch" ? bmrKatch(leanBodyMass) : bmrCunningham(leanBodyMass)),
+      bmr: Math.round(unroundedBmr),
+      unroundedBmr,
       formulaUsed: formula === "katch" ? "Katch-McArdle" : "Cunningham",
       bodyFatFallback,
     };
   }
 
   if (formula === "harris") {
-    return { bmr: Math.round(bmrHarris(weightKg, heightCm, age, sex)), formulaUsed: "Harris-Benedict", bodyFatFallback };
+    const unroundedBmr = bmrHarris(weightKg, heightCm, age, sex);
+    return { bmr: Math.round(unroundedBmr), unroundedBmr, formulaUsed: "Harris-Benedict", bodyFatFallback };
   }
 
-  return { bmr: Math.round(bmrMifflin(weightKg, heightCm, age, sex)), formulaUsed: "Mifflin-St Jeor", bodyFatFallback };
+  const unroundedBmr = bmrMifflin(weightKg, heightCm, age, sex);
+  return { bmr: Math.round(unroundedBmr), unroundedBmr, formulaUsed: "Mifflin-St Jeor", bodyFatFallback };
+}
+
+export function calculateBmr(input: BmrInput) {
+  const result = calculateBmrDetails(input);
+  return {
+    bmr: result.bmr,
+    formulaUsed: result.formulaUsed,
+    bodyFatFallback: result.bodyFatFallback,
+  };
 }
 
 function invalidResult(errors: string[]): InvalidMacroResult {
@@ -188,7 +214,7 @@ function validateMacroInput(input: MacroInput, enforceMacroLimits: boolean) {
     errors.push(`Body fat must be between ${bodyFatPct.min}% and ${bodyFatPct.max}%, or omitted.`);
   }
 
-  const supportedGoals: readonly string[] = ["lose", "maintain", "build", "keto"];
+  const supportedGoals: readonly string[] = ["lose", "maintain", "build", "keto", ...Object.keys(MACRO_CALORIE_GOALS)];
   if (!supportedGoals.includes(input.goal)) errors.push("Select a valid calorie goal.");
   if (input.calorieGoal !== undefined
     && !(input.calorieGoal in GOAL_CALORIE_ADJUSTMENTS)) errors.push("Select a valid calorie goal.");
@@ -214,7 +240,9 @@ function normalizedSplit(input: MacroInput, useLegacyGoalSplit: boolean): readon
     return [input.customSplit[0] / total, input.customSplit[1] / total, input.customSplit[2] / total];
   }
 
-  if (useLegacyGoalSplit && !input.calorieGoal && input.split === undefined) return LEGACY_MACRO_SPLITS[input.goal];
+  if (useLegacyGoalSplit && !input.calorieGoal && input.split === undefined && isLegacyMacroGoal(input.goal)) {
+    return LEGACY_MACRO_SPLITS[input.goal];
+  }
 
   const split = input.split ?? (!input.calorieGoal && input.goal === "keto" ? "keto" : "balanced");
   if (split === "custom") return [0, 0, 0];
@@ -234,73 +262,99 @@ function calculateMacrosInternal(
   if (errors.length) return invalidResult(errors);
 
   const { activity, goal } = input;
-  const { bmr, formulaUsed, bodyFatFallback } = calculateBmr(input);
-  const tdee = bmr * ACTIVITY_MULTIPLIERS[activity];
-  const canonicalGoal = input.calorieGoal ?? (goal === "build" ? "muscleGain" : goal === "keto" ? "maintain" : goal);
-  const targetKcal = Math.round(tdee * (1 + GOAL_CALORIE_ADJUSTMENTS[canonicalGoal]));
+  const { bmr, unroundedBmr, formulaUsed, bodyFatFallback } = calculateBmrDetails(input);
+  const rawTdee = unroundedBmr * ACTIVITY_MULTIPLIERS[activity];
+  const tdee = Math.round(rawTdee);
+  const fixedGoal = input.calorieGoal === undefined && isMacroCalorieGoal(goal) ? goal : null;
+  const canonicalGoal: CanonicalMacroGoal = input.calorieGoal
+    ?? (goal === "lose" ? "lose" : goal === "build" ? "muscleGain" : "maintain");
+  const targetKcal = fixedGoal
+    ? tdee + MACRO_CALORIE_GOALS[fixedGoal].adjustmentKcal
+    : Math.round(rawTdee * (1 + GOAL_CALORIE_ADJUSTMENTS[canonicalGoal]));
 
   if (!Number.isFinite(tdee) || !Number.isFinite(targetKcal) || targetKcal <= 0) {
     return invalidResult(["The inputs do not produce a usable calorie target."]);
   }
 
   const [proteinShare, carbShare, fatShare] = normalizedSplit(input, useLegacyGoalSplit);
-  const splitProteinGrams = targetKcal * proteinShare / KCAL_PER_GRAM.protein;
+  const energyFactors = MACRO_KCAL_PER_GRAM;
+  const splitProteinGrams = targetKcal * proteinShare / energyFactors.protein;
   const splitProteinPerKg = splitProteinGrams / input.weightKg;
-  const preset = input.split !== "custom";
-  const adjustedProteinGrams = preset
-    ? Math.min(
-      input.weightKg * PROTEIN_TARGET_G_PER_KG.max,
-      Math.max(input.weightKg * PROTEIN_TARGET_G_PER_KG.min, splitProteinGrams),
-    )
-    : splitProteinGrams;
-  const protein = Math.round(adjustedProteinGrams);
-  const proteinCalories = protein * KCAL_PER_GRAM.protein;
-  const remainingCalories = targetKcal - proteinCalories;
-  const remainingMacroShare = carbShare + fatShare;
-  const fatCalories = remainingCalories * fatShare / remainingMacroShare;
-  const fat = Math.round(fatCalories / KCAL_PER_GRAM.fat);
-  const carbs = Math.round((targetKcal - proteinCalories - fat * KCAL_PER_GRAM.fat) / KCAL_PER_GRAM.carbs);
+  const protein = Math.round(splitProteinGrams);
+  const carbs = Math.round(targetKcal * carbShare / energyFactors.carbs);
+  const fat = Math.round(targetKcal * fatShare / energyFactors.fat);
   const proteinPerKg = protein / input.weightKg;
-  const actualProteinShare = sharePercent(protein * KCAL_PER_GRAM.protein, targetKcal);
-  const actualCarbShare = sharePercent(carbs * KCAL_PER_GRAM.carbs, targetKcal);
-  const actualFatShare = sharePercent(fat * KCAL_PER_GRAM.fat, targetKcal);
+  const actualProteinShare = sharePercent(protein * energyFactors.protein, targetKcal);
+  const actualCarbShare = sharePercent(carbs * energyFactors.carbs, targetKcal);
+  const actualFatShare = sharePercent(fat * energyFactors.fat, targetKcal);
   const warnings: string[] = [];
 
-  if (preset && (splitProteinGrams < input.weightKg * PROTEIN_TARGET_G_PER_KG.min
-    || splitProteinGrams > input.weightKg * PROTEIN_TARGET_G_PER_KG.max)) {
-    warnings.push(
-      `Preset protein was adjusted from ${splitProteinGrams.toFixed(1)} g (${splitProteinPerKg.toFixed(1)} g/kg) `
-      + `to ${protein} g (${proteinPerKg.toFixed(1)} g/kg) to stay within the `
-      + `${PROTEIN_TARGET_G_PER_KG.min}–${PROTEIN_TARGET_G_PER_KG.max} g/kg range.`,
-    );
-  }
-  if (!preset && (proteinPerKg < PROTEIN_TARGET_G_PER_KG.min || proteinPerKg > PROTEIN_TARGET_G_PER_KG.max)) {
-    warnings.push(
-      `Custom protein provides ${proteinPerKg.toFixed(1)} g/kg, outside the `
-      + `${PROTEIN_TARGET_G_PER_KG.min}–${PROTEIN_TARGET_G_PER_KG.max} g/kg range.`,
-    );
-  }
-  if (actualFatShare < MINIMUM_FAT_CALORIE_SHARE * 100) {
-    warnings.push(`Fat provides less than ${MINIMUM_FAT_CALORIE_SHARE * 100}% of the calorie target.`);
-  }
-  if (targetKcal < MINIMUM_CALORIE_WARNING_THRESHOLDS[input.sex]) {
-    warnings.push(
-      `The calorie target is below ${MINIMUM_CALORIE_WARNING_THRESHOLDS[input.sex].toLocaleString()} kcal/day for ${input.sex === "female" ? "women" : "men"}.`,
-    );
-  }
-  if (bodyFatFallback) {
-    warnings.push(`${input.formula === "katch" ? "Katch-McArdle" : "Cunningham"} requires body-fat information; this calculation fell back to Mifflin-St Jeor.`);
-  }
+  if (
+    splitProteinGrams < input.weightKg * PROTEIN_TARGET_G_PER_KG.min ||
+    splitProteinGrams > input.weightKg * PROTEIN_TARGET_G_PER_KG.max
+  ) 
 
-  if (![bmr, tdee, targetKcal, protein, carbs, fat, proteinPerKg, actualProteinShare, actualCarbShare, actualFatShare].every(Number.isFinite)
-    || protein < 0 || carbs < 0 || fat < 0) {
-    return invalidResult(["The inputs do not produce usable calorie and macro values."]);
-  }
+if (actualFatShare < MINIMUM_FAT_CALORIE_SHARE * 100) {
+  warnings.push(
+    `Fat provides less than ${MINIMUM_FAT_CALORIE_SHARE * 100}% of your daily calories. ` +
+    `Consider reviewing your macro split.`,
+  );
+}
+
+if (
+  targetKcal <
+  MINIMUM_CALORIE_WARNING_THRESHOLDS[input.sex]
+) {
+  const calorieThreshold =
+    MINIMUM_CALORIE_WARNING_THRESHOLDS[input.sex];
+
+  const sexLabel =
+    input.sex === "female" ? "women" : "men";
+
+  warnings.push(
+    `Your daily target is below the calculator's caution threshold of ` +
+    `${calorieThreshold.toLocaleString()} kcal/day for ${sexLabel}. ` +
+    `Consider reviewing your goal and inputs. Individual calorie needs vary.`,
+  );
+}
+
+if (bodyFatFallback) {
+  const formulaName =
+    input.formula === "katch" ? "Katch–McArdle" : "Cunningham";
+
+  warnings.push(
+    `${formulaName} requires body-fat information. ` +
+    `Mifflin–St Jeor was used instead to estimate your resting calorie needs.`,
+  );
+}
+
+if (
+  ![
+    bmr,
+    tdee,
+    targetKcal,
+    protein,
+    carbs,
+    fat,
+    proteinPerKg,
+    actualProteinShare,
+    actualCarbShare,
+    actualFatShare,
+  ].every(Number.isFinite) ||
+  protein < 0 ||
+  carbs < 0 ||
+  fat < 0
+) {
+  return invalidResult([
+    "These inputs don't produce a valid calorie and macro estimate. " +
+    "Check your measurements and settings, then try again.",
+  ]);
+}
 
   return {
     valid: true,
     bmr,
-    tdee: Math.round(tdee),
+    tdee,
     targetKcal,
     protein,
     carbs,

@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { calculateBodyFat, type BodyFatResult, type BodyFatSex, type BodyFatUnit } from "@/lib/calculators/body-fat-calculator";
 import { getCalculatorValidationMessage } from "@/lib/calculator-validation";
+import { centimetersToFeetAndInches, centimetersToInches, feetAndInchesToCentimeters, inchesToCentimeters, kilogramsToPounds, poundsToKilograms } from "@/lib/calculator-unit-conversions";
+import { useCalculatorUnitSystem } from "@/lib/use-calculator-unit-system";
 
 export default function BodyFatCalculatorWidget() {
-  const [unit, setUnit] = useState<BodyFatUnit>("imperial");
+  const [unit, setUnit] = useCalculatorUnitSystem();
   const [sex, setSex] = useState<BodyFatSex>("male");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
@@ -20,8 +22,10 @@ export default function BodyFatCalculatorWidget() {
   const [error, setError] = useState("");
   const [validationMessage, setValidationMessage] = useState("");
 
-  const convert = (value: string, factor: number) =>
-    value.trim() && Number.isFinite(Number(value)) ? String(Math.round(Number(value) * factor * 10) / 10) : "";
+  const convert = (value: string, transform: (number: number) => number) =>
+    value.trim() && Number.isFinite(Number(value)) ? String(transform(Number(value))) : "";
+  const displayMeasurement = (value: string) =>
+    value.trim() && Number.isFinite(Number(value)) ? String(Math.round(Number(value) * 10) / 10) : "";
   const update = (callback: () => void) => {
     callback();
     setResult(null);
@@ -31,26 +35,26 @@ export default function BodyFatCalculatorWidget() {
   const changeUnit = (nextUnit: BodyFatUnit) => {
     if (unit === nextUnit) return;
     const currentHeightCm = unit === "imperial"
-      ? ((Number(heightFeet) || 0) * 12 + (Number(heightInches) || 0)) * 2.54
+      ? feetAndInchesToCentimeters(Number(heightFeet) || 0, Number(heightInches) || 0)
       : Number(height);
-    const conversion = nextUnit === "imperial" ? 1 / 2.54 : 1;
-    const nextHeight = currentHeightCm * conversion;
+    const nextHeight = nextUnit === "imperial" ? centimetersToFeetAndInches(currentHeightCm) : currentHeightCm;
     setUnit(nextUnit);
-    setHeight(nextUnit === "metric" ? convert(String(nextHeight), 1) : "");
     if (nextUnit === "imperial") {
-      setHeightFeet(nextHeight ? String(Math.floor(nextHeight / 12)) : "");
-      setHeightInches(nextHeight ? String(Math.round((nextHeight % 12) * 10) / 10) : "");
-      setWeight(convert(weight, 2.20462));
-      setNeck(convert(neck, 1 / 2.54));
-      setWaist(convert(waist, 1 / 2.54));
-      setHip(convert(hip, 1 / 2.54));
+      setHeight("");
+      setHeightFeet(currentHeightCm ? String(nextHeight.feet) : "");
+      setHeightInches(currentHeightCm ? String(nextHeight.inches) : "");
+      setWeight(convert(weight, (value) => kilogramsToPounds(value)));
+      setNeck(convert(neck, centimetersToInches));
+      setWaist(convert(waist, centimetersToInches));
+      setHip(convert(hip, centimetersToInches));
     } else {
       setHeightFeet("");
       setHeightInches("");
-      setWeight(convert(weight, 1 / 2.20462));
-      setNeck(convert(neck, 2.54));
-      setWaist(convert(waist, 2.54));
-      setHip(convert(hip, 2.54));
+      setHeight(currentHeightCm ? convert(String(currentHeightCm), (value) => value) : "");
+      setWeight(convert(weight, (value) => poundsToKilograms(value)));
+      setNeck(convert(neck, inchesToCentimeters));
+      setWaist(convert(waist, inchesToCentimeters));
+      setHip(convert(hip, inchesToCentimeters));
     }
     setResult(null);
     setError("");
@@ -96,7 +100,7 @@ export default function BodyFatCalculatorWidget() {
         <div className="tdee-form-heading">
           <h2>Your Measurements</h2>
           <div className="tdee-unit-toggle" aria-label="Measurement units">
-            {(["metric", "imperial"] as const).map((value) => (
+            {(["imperial", "metric"] as const).map((value) => (
               <button aria-pressed={unit === value} className={unit === value ? "selected" : ""} key={value} onClick={() => changeUnit(value)} type="button">
                 {value === "metric" ? "Metric" : "Imperial"}
               </button>
@@ -104,48 +108,52 @@ export default function BodyFatCalculatorWidget() {
           </div>
         </div>
 
-        <div className="body-fat-fields-grid">
-          <label className="field tdee-sex-field">
-            <span>Sex / Gender</span>
-            <div className="segmented">
-              {(["male", "female"] as const).map((value) => (
-                <button aria-pressed={sex === value} className={sex === value ? "selected" : ""} key={value} onClick={() => update(() => setSex(value))} type="button">
-                  {value === "male" ? "Male" : "Female"}
-                </button>
-              ))}
-            </div>
-          </label>
+        <label className="field tdee-sex-field">
+          <span>Sex / Gender</span>
+          <div className="segmented">
+            {(["male", "female"] as const).map((value) => (
+              <button aria-pressed={sex === value} className={sex === value ? "selected" : ""} key={value} onClick={() => update(() => setSex(value))} type="button">
+                {value === "male" ? "Male" : "Female"}
+              </button>
+            ))}
+          </div>
+        </label>
+
+        <div className="tdee-field-grid">
           <label className="field">
             <span>Age <small>(optional; required for BMI comparison)</small></span>
             <div className="input-unit"><input max="100" min="18" onChange={(event) => update(() => setAge(event.target.value))} type="number" value={age} /><i>years</i></div>
           </label>
           <label className="field">
             <span>Weight</span>
-            <div className="input-unit"><input min="1" onChange={(event) => update(() => setWeight(event.target.value))} type="number" value={weight} /><i>{unit === "imperial" ? "lb" : "kg"}</i></div>
+            <div className="input-unit"><input min="1" onChange={(event) => update(() => setWeight(event.target.value))} type="number" value={displayMeasurement(weight)} /><i>{unit === "imperial" ? "lb" : "kg"}</i></div>
           </label>
           <label className="field">
             <span>Height</span>
             {unit === "imperial" ? (
-              <div className="body-fat-height-fields">
-                <div className="input-unit"><input aria-label="Height in feet" min="1" onChange={(event) => update(() => setHeightFeet(event.target.value))} type="number" value={heightFeet} /><i>ft</i></div>
-                <div className="input-unit"><input aria-label="Height in inches" max="11.9" min="0" onChange={(event) => update(() => setHeightInches(event.target.value))} step="0.1" type="number" value={heightInches} /><i>in</i></div>
+              <div className="input-unit height-feet">
+                <input aria-label="Height in feet" min="1" onChange={(event) => update(() => setHeightFeet(event.target.value))} type="number" value={heightFeet} /><i>ft</i>
+                <input aria-label="Height in inches" max="11.9" min="0" onChange={(event) => update(() => setHeightInches(event.target.value))} step="0.1" type="number" value={displayMeasurement(heightInches)} /><i>in</i>
               </div>
             ) : (
-              <div className="input-unit"><input min="1" onChange={(event) => update(() => setHeight(event.target.value))} type="number" value={height} /><i>cm</i></div>
+              <div className="input-unit"><input min="1" onChange={(event) => update(() => setHeight(event.target.value))} type="number" value={displayMeasurement(height)} /><i>cm</i></div>
             )}
           </label>
+        </div>
+
+        <div className="body-fat-fields-grid">
           <label className="field">
             <span>Neck Circumference</span>
-            <div className="input-unit"><input min="1" onChange={(event) => update(() => setNeck(event.target.value))} type="number" value={neck} /><i>{unit === "imperial" ? "in" : "cm"}</i></div>
+            <div className="input-unit"><input min="1" onChange={(event) => update(() => setNeck(event.target.value))} type="number" value={displayMeasurement(neck)} /><i>{unit === "imperial" ? "in" : "cm"}</i></div>
           </label>
           <label className="field">
             <span>Waist Circumference</span>
-            <div className="input-unit"><input min="1" onChange={(event) => update(() => setWaist(event.target.value))} type="number" value={waist} /><i>{unit === "imperial" ? "in" : "cm"}</i></div>
+            <div className="input-unit"><input min="1" onChange={(event) => update(() => setWaist(event.target.value))} type="number" value={displayMeasurement(waist)} /><i>{unit === "imperial" ? "in" : "cm"}</i></div>
           </label>
           {sex === "female" && (
             <label className="field">
               <span>Hip Circumference</span>
-              <div className="input-unit"><input min="1" onChange={(event) => update(() => setHip(event.target.value))} type="number" value={hip} /><i>{unit === "imperial" ? "in" : "cm"}</i></div>
+              <div className="input-unit"><input min="1" onChange={(event) => update(() => setHip(event.target.value))} type="number" value={displayMeasurement(hip)} /><i>{unit === "imperial" ? "in" : "cm"}</i></div>
             </label>
           )}
         </div>
